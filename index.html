@@ -1,0 +1,2517 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>DISLAM - Controle de Pendências</title>
+
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+    body {
+      background-color: #f0f2f5;
+      color: #333;
+      padding: 20px;
+    }
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+      background: white;
+      border-radius: 10px;
+      box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+      overflow: hidden;
+    }
+    header {
+      background: linear-gradient(135deg, #dd6c02 0%, #dd6c02 100%);
+      color: white;
+      padding: 20px;
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      flex-wrap: wrap;
+    }
+    .logo-area {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+    }
+    .logo-text h1 {
+      font-size: 24px;
+      margin-bottom: 5px;
+    }
+    .logo-text p {
+      font-size: 12px;
+      opacity: 0.8;
+    }
+    .import-section {
+      background: #ecf0f1;
+      padding: 20px;
+      border-bottom: 2px solid #bdc3c7;
+    }
+    .import-title {
+      font-size: 16px;
+      margin-bottom: 15px;
+      color: #2c3e50;
+      border-left: 4px solid #27ae60;
+      padding-left: 10px;
+    }
+    .import-area {
+      display: flex;
+      gap: 20px;
+      flex-wrap: wrap;
+      align-items: flex-end;
+      margin-bottom: 20px;
+      padding-bottom: 20px;
+      border-bottom: 1px dashed #bdc3c7;
+    }
+    .import-group {
+      flex: 1;
+      min-width: 250px;
+    }
+    .import-group label {
+      display: block;
+      margin-bottom: 5px;
+      font-weight: bold;
+      color: #2c3e50;
+    }
+    .import-group input, .import-group select {
+      margin-bottom: 0;
+    }
+    .btn-import {
+      background: #8e44ad;
+      height: 42px;
+      width: auto;
+      padding: 0 20px;
+    }
+    .btn-import-clientes {
+      background: #27ae60;
+    }
+    .btn-import-itens {
+      background: #2980b9;
+    }
+    .btn-import:hover {
+      opacity: 0.9;
+    }
+    .client-search {
+      background: white;
+      padding: 20px;
+      border-bottom: 1px solid #ddd;
+      display: flex;
+      gap: 10px;
+      align-items: flex-end;
+      flex-wrap: wrap;
+    }
+    .client-search input {
+      flex: 2;
+      margin-bottom: 0;
+    }
+    .client-search button {
+      width: auto;
+      padding: 0 20px;
+      margin-bottom: 0;
+    }
+    .client-info {
+      background: #e8f4fd;
+      padding: 15px;
+      margin: 0 20px 20px 20px;
+      border-radius: 8px;
+      display: none;
+    }
+    .client-info h3 {
+      color: #2c3e50;
+      margin-bottom: 10px;
+    }
+    .info-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 10px;
+    }
+    .info-item {
+      display: flex;
+      gap: 10px;
+    }
+    .info-label {
+      font-weight: bold;
+      color: #7f8c8d;
+    }
+    .controls {
+      padding: 20px;
+      background: #ecf0f1;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 15px;
+    }
+    .filter-section {
+      flex: 1;
+      min-width: 180px;
+    }
+    .filter-section h3 {
+      margin-bottom: 10px;
+      color: #2c3e50;
+      font-size: 14px;
+    }
+    select, input, button {
+      padding: 10px;
+      border: 1px solid #ddd;
+      border-radius: 5px;
+      width: 100%;
+      margin-bottom: 10px;
+    }
+    button {
+      background: #3498db;
+      color: white;
+      border: none;
+      cursor: pointer;
+      transition: background 0.3s;
+      font-weight: bold;
+    }
+    button:hover {
+      background: #2980b9;
+    }
+    button:disabled {
+      background: #95a5a6;
+      cursor: not-allowed;
+    }
+    .btn-add {
+      background: #1e7542;
+    }
+    .btn-add:hover:not(:disabled) {
+      background: #219653;
+    }
+    .btn-export {
+      background: #f39c12;
+    }
+    .btn-export:hover:not(:disabled) {
+      background: #e67e22;
+    }
+    .btn-print {
+      background: #16a085;
+    }
+    .btn-print-selected {
+      background: #8e44ad;
+    }
+    .btn-baixar {
+      background: #27ae60;
+    }
+    .sort-buttons {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 10px;
+      flex-wrap: wrap;
+    }
+    .sort-btn {
+      background: #34495e;
+      font-size: 12px;
+      padding: 8px;
+      margin-bottom: 0;
+      width: auto;
+    }
+    .table-container {
+      overflow-x: auto;
+      padding: 0 20px 20px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+    }
+    th, td {
+      padding: 10px 12px;
+      text-align: left;
+      border-bottom: 1px solid #ddd;
+      font-size: 13px;
+    }
+    th {
+      background-color: #2c3e50;
+      color: white;
+      position: sticky;
+      top: 0;
+    }
+    tr:hover {
+      background-color: #f5f5f5;
+    }
+    .status-pendente {
+      background-color: #ffcccc;
+      color: #c0392b;
+      padding: 4px 8px;
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: bold;
+      display: inline-block;
+      cursor: pointer;
+    }
+    .status-resolvido {
+      background-color: #ccffcc;
+      color: #27ae60;
+      padding: 4px 8px;
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: bold;
+      display: inline-block;
+      cursor: pointer;
+    }
+    .status-emrota {
+      background-color: #fff3cd;
+      color: #856404;
+      padding: 4px 8px;
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: bold;
+      display: inline-block;
+      cursor: pointer;
+    }
+    .action-btn {
+      padding: 4px 8px;
+      margin-right: 3px;
+      border: none;
+      border-radius: 3px;
+      cursor: pointer;
+      font-size: 11px;
+    }
+    .btn-edit {
+      background: #3498db;
+      color: white;
+    }
+    .btn-delete {
+      background: #e74c3c;
+      color: white;
+    }
+    .btn-print-row {
+      background: #16a085;
+      color: white;
+    }
+    .checkbox-col {
+      width: 30px;
+      text-align: center;
+    }
+    .checkbox-col input {
+      width: 16px;
+      height: 16px;
+      margin: 0;
+    }
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.5);
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+    }
+    .modal-content {
+      background-color: white;
+      padding: 20px;
+      border-radius: 10px;
+      width: 95%;
+      max-width: 900px;
+      max-height: 90%;
+      overflow-y: auto;
+    }
+    .modal-content h2 {
+      margin-bottom: 20px;
+      color: #2c3e50;
+      border-bottom: 2px solid #27ae60;
+      padding-bottom: 10px;
+    }
+    .form-row {
+      display: flex;
+      gap: 15px;
+      flex-wrap: wrap;
+      margin-bottom: 15px;
+    }
+    .form-group {
+      flex: 1;
+      min-width: 200px;
+    }
+    .form-group label {
+      display: block;
+      margin-bottom: 5px;
+      font-weight: bold;
+      font-size: 13px;
+    }
+    .form-group input, .form-group select, .form-group textarea {
+      width: 100%;
+      padding: 8px;
+      border: 1px solid #ddd;
+      border-radius: 5px;
+    }
+    .form-group textarea {
+      resize: vertical;
+      min-height: 60px;
+    }
+    .form-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+      margin-top: 20px;
+    }
+    .btn-cancel {
+      background: #95a5a6;
+    }
+    .btn-cancel:hover {
+      background: #7f8c8d;
+    }
+    .btn-save {
+      background: #27ae60;
+    }
+    .summary-cards {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 15px;
+      padding: 15px 20px;
+      justify-content: space-around;
+    }
+    .card {
+      background: white;
+      border-radius: 8px;
+      padding: 15px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+      flex: 1;
+      min-width: 120px;
+      text-align: center;
+      cursor: pointer;
+    }
+    .card h3 {
+      color: #7f8c8d;
+      font-size: 12px;
+      margin-bottom: 5px;
+    }
+    .card p {
+      font-size: 22px;
+      font-weight: bold;
+      color: #2c3e50;
+    }
+    .card.pendentes p { color: #e74c3c; }
+    .card.resolvidos p { color: #27ae60; }
+    .card.emrota p { color: #f39c12; }
+    .user-info {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px 20px;
+      background: #ecf0f1;
+      border-bottom: 1px solid #ddd;
+    }
+    .btn-logout {
+      background: #e74c3c;
+      width: auto;
+      margin: 0;
+      padding: 5px 15px;
+    }
+    .required-field::after {
+      content: " *";
+      color: red;
+    }
+    .batch-actions {
+      display: flex;
+      gap: 10px;
+      margin: 10px 20px;
+      padding: 10px;
+      background: #ecf0f1;
+      border-radius: 5px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+    .batch-actions button {
+      width: auto;
+      margin-bottom: 0;
+    }
+    .select-all-btn {
+      background: #34495e;
+    }
+    .counter {
+      background: #27ae60;
+      color: white;
+      padding: 5px 12px;
+      border-radius: 20px;
+      font-size: 13px;
+      font-weight: bold;
+      display: inline-block;
+      margin-left: 10px;
+      white-space: nowrap;
+    }
+    .pending-alert {
+      background-color: #ffcccc;
+      color: #c0392b;
+      padding: 8px;
+      border-radius: 8px;
+      margin-top: 10px;
+      font-weight: bold;
+      text-align: center;
+      font-size: 13px;
+    }
+    
+    .baixar-section {
+      background: #e8f5e9;
+      padding: 15px 20px;
+      margin: 10px 20px;
+      border-radius: 8px;
+      border-left: 4px solid #27ae60;
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      flex-wrap: wrap;
+    }
+    .baixar-section h4 {
+      color: #2e7d32;
+      margin: 0;
+      font-size: 14px;
+    }
+    .baixar-section input {
+      flex: 2;
+      min-width: 200px;
+      margin-bottom: 0;
+    }
+    .baixar-section button {
+      width: auto;
+      margin-bottom: 0;
+    }
+    .baixar-mensagem {
+      background: #c8e6c9;
+      color: #2e7d32;
+      padding: 8px 15px;
+      border-radius: 5px;
+      display: none;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .admin-tabs {
+      display: flex;
+      gap: 5px;
+      margin-bottom: 20px;
+      border-bottom: 2px solid #ddd;
+    }
+    .tab-btn {
+      background: #ecf0f1;
+      color: #2c3e50;
+      border: none;
+      padding: 10px 20px;
+      cursor: pointer;
+      font-weight: bold;
+      border-radius: 5px 5px 0 0;
+      width: auto;
+      margin-bottom: 0;
+    }
+    .tab-btn.active {
+      background: #3498db;
+      color: white;
+    }
+    .tab-content {
+      display: none;
+      padding: 15px 0;
+    }
+    .tab-content.active {
+      display: block;
+    }
+
+    .admin-panel {
+      background: white;
+      margin: 15px 20px;
+      padding: 15px;
+      border-radius: 10px;
+      border: 2px solid #3498db;
+      display: none;
+    }
+    .admin-panel h3 {
+      color: #2c3e50;
+      margin-bottom: 15px;
+    }
+    .items-list, .clientes-list {
+      margin-top: 15px;
+      max-height: 300px;
+      overflow-y: auto;
+      border: 1px solid #ddd;
+      border-radius: 5px;
+    }
+    .item-row, .cliente-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px 12px;
+      border-bottom: 1px solid #eee;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+    .item-info, .cliente-info {
+      flex: 2;
+    }
+    .item-actions button, .cliente-actions button {
+      width: auto;
+      margin: 0;
+      padding: 4px 8px;
+      font-size: 11px;
+    }
+    .users-list {
+      margin-top: 15px;
+      max-height: 400px;
+      overflow-y: auto;
+    }
+    .user-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px;
+      border-bottom: 1px solid #ddd;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+    .user-permissions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+      max-width: 100%;
+    }
+    .perm-checkbox {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 11px;
+      background: #f5f5f5;
+      padding: 3px 8px;
+      border-radius: 15px;
+    }
+    .perm-checkbox input {
+      width: 14px;
+      height: 14px;
+      margin: 0;
+    }
+    .user-actions button {
+      width: auto;
+      margin: 0;
+      padding: 4px 8px;
+      font-size: 11px;
+    }
+    .btn-delete-user { background: #e74c3c; }
+    .btn-reset-password { background: #f39c12; }
+    .admin-badge { background: #e74c3c; color: white; padding: 2px 8px; border-radius: 12px; font-size: 10px; margin-left: 8px; }
+    .user-badge { background: #3498db; color: white; padding: 2px 8px; border-radius: 12px; font-size: 10px; margin-left: 8px; }
+
+    .item-pendencia-row {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 10px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+    .item-pendencia-row input {
+      flex: 1;
+      margin-bottom: 0;
+    }
+    .btn-add-item {
+      background: #27ae60;
+      width: auto;
+      margin: 0;
+      padding: 8px 15px;
+    }
+    .btn-remove-item {
+      background: #e74c3c;
+      width: auto;
+      margin: 0;
+      padding: 8px 15px;
+    }
+    .items-list-pendencia {
+      margin-top: 10px;
+      border: 1px solid #ddd;
+      border-radius: 5px;
+      padding: 10px;
+      max-height: 200px;
+      overflow-y: auto;
+    }
+    .item-pendencia-display {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 5px;
+      border-bottom: 1px solid #eee;
+      font-size: 12px;
+    }
+
+    .batch-delete-actions {
+      display: flex;
+      gap: 10px;
+      margin: 10px 0;
+      flex-wrap: wrap;
+    }
+    .btn-batch-delete {
+      background: #c0392b;
+      width: auto;
+    }
+
+    /* Estilos para impressão */
+    @media print {
+      body * {
+        visibility: hidden;
+      }
+      .print-document, .print-document * {
+        visibility: visible;
+      }
+      .print-document {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        margin: 0;
+        padding: 20px;
+      }
+      .no-print {
+        display: none;
+      }
+    }
+
+    @media (max-width: 768px) {
+      .controls, .import-area, .client-search { flex-direction: column; }
+      .batch-actions { flex-direction: column; align-items: stretch; }
+      .batch-actions button { width: 100%; }
+      .user-permissions { justify-content: center; }
+      .user-item { flex-direction: column; align-items: stretch; }
+      .baixar-section { flex-direction: column; align-items: stretch; }
+      .baixar-section button { width: 100%; }
+    }
+
+    .login-container {
+      max-width: 450px;
+      margin: 50px auto;
+      background: white;
+      border-radius: 10px;
+      box-shadow: 0 0 20px rgba(0,0,0,0.1);
+    }
+    .login-header {
+      background: linear-gradient(135deg, #dd6c02 0%, #dd6c02 100%);
+      color: white;
+      padding: 30px;
+      text-align: center;
+    }
+    .login-body { padding: 30px; }
+    .login-btn { background: #27ae60; margin-top: 10px; }
+    .error-message {
+      background: #e74c3c;
+      color: white;
+      padding: 10px;
+      border-radius: 5px;
+      margin-bottom: 20px;
+      display: none;
+    }
+    .success-message {
+      background: #27ae60;
+      color: white;
+      padding: 10px;
+      border-radius: 5px;
+      margin-bottom: 20px;
+      display: none;
+    }
+    .change-password-link {
+      text-align: center;
+      margin-top: 15px;
+      font-size: 12px;
+    }
+    .change-password-link a {
+      color: #3498db;
+      text-decoration: none;
+      cursor: pointer;
+    }
+    .change-password-link a:hover {
+      text-decoration: underline;
+    }
+  </style>
+
+  <script src="https://cdn.sheetjs.com/xlsx-0.20.2/package/dist/xlsx.full.min.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+</head>
+<body>
+
+<!-- Tela de Login -->
+<div id="login-screen">
+  <div class="login-container">
+    <div class="login-header">
+      <h2 style="margin:0">DISLAM</h2>
+      <p>Controle de Pendências</p>
+    </div>
+    <div class="login-body">
+      <div id="login-error" class="error-message"></div>
+      <div id="login-success" class="success-message"></div>
+      
+      <form id="login-form">
+        <div class="form-group">
+          <label>Usuário:</label>
+          <input type="text" id="login-username" placeholder="Digite seu usuário" required />
+        </div>
+        <div class="form-group">
+          <label>Senha:</label>
+          <input type="password" id="login-password" placeholder="Digite sua senha" required />
+        </div>
+        <button type="submit" class="login-btn">Entrar</button>
+      </form>
+      
+      <div class="change-password-link">
+        <a id="show-change-password"> Alterar minha senha</a>
+      </div>
+      
+      <form id="change-password-form" style="display: none; margin-top: 20px; border-top: 1px solid #ddd; padding-top: 20px;">
+        <h4 style="margin-bottom: 15px; color: #2c3e50;">Alterar Senha</h4>
+        <div class="form-group">
+          <label>Usuário:</label>
+          <input type="text" id="change-username" placeholder="Digite seu usuário" required />
+        </div>
+        <div class="form-group">
+          <label>Senha Atual:</label>
+          <input type="password" id="current-password" placeholder="Digite sua senha atual" required />
+        </div>
+        <div class="form-group">
+          <label>Nova Senha:</label>
+          <input type="password" id="new-password" placeholder="Digite a nova senha" required />
+        </div>
+        <div class="form-group">
+          <label>Confirmar Nova Senha:</label>
+          <input type="password" id="confirm-new-password" placeholder="Confirme a nova senha" required />
+        </div>
+        <div id="change-password-error" class="error-message"></div>
+        <div id="change-password-success" class="success-message"></div>
+        <div class="form-actions" style="margin-top: 15px;">
+          <button type="button" id="cancel-change-password" class="btn-cancel" style="width: auto;">Cancelar</button>
+          <button type="submit" id="submit-change-password" class="btn-save" style="width: auto;">Alterar Senha</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Sistema Principal -->
+<div id="main-system" style="display: none;">
+  <div class="container">
+    <header>
+      <div class="logo-area">
+        <div class="logo-text">
+          <h1>DISLAM Distribuidora</h1>
+          <p>Sistema de Controle de Pendências</p>
+        </div>
+      </div>
+    </header>
+
+    <div id="admin-panel" class="admin-panel">
+      <h3> Painel de Administração</h3>
+      <div class="admin-tabs">
+        <button class="tab-btn active" data-tab="clientes-tab">📋 Clientes Cadastrados</button>
+        <button class="tab-btn" data-tab="itens-tab">📦 Itens Cadastrados</button>
+        <button class="tab-btn" data-tab="usuarios-tab">👥 Gerenciar Usuários</button>
+      </div>
+
+      <div id="clientes-tab" class="tab-content active">
+        <h4> Clientes Cadastrados</h4>
+        <div style="display: flex; gap: 10px; margin-bottom: 10px; flex-wrap: wrap;">
+          <input type="text" id="search-cliente-admin" placeholder="Buscar cliente por código ou nome..." style="flex:2;">
+        </div>
+        <div class="batch-delete-actions">
+          <button id="select-all-clientes-btn" class="btn-batch-delete" style="background:#34495e;">Selecionar Todos Clientes</button>
+          <button id="deselect-all-clientes-btn" class="btn-batch-delete" style="background:#34495e;">Desmarcar Todos</button>
+          <button id="delete-selected-clientes-btn" class="btn-batch-delete" style="background:#c0392b;">Excluir Selecionados</button>
+          <button id="delete-all-clientes-btn" class="btn-batch-delete" style="background:#c0392b;">Excluir Todos os Clientes</button>
+        </div>
+        <div id="clientes-list" class="clientes-list"></div>
+      </div>
+
+      <div id="itens-tab" class="tab-content">
+        <h4>📦 Itens/Produtos Cadastrados</h4>
+        <div style="display: flex; gap: 10px; margin-bottom: 10px; flex-wrap: wrap;">
+          <input type="text" id="search-item-admin" placeholder="Buscar item por código ou descrição..." style="flex:2;">
+        </div>
+        <div class="batch-delete-actions">
+          <button id="select-all-itens-btn" class="btn-batch-delete" style="background:#34495e;">Selecionar Todos Itens</button>
+          <button id="deselect-all-itens-btn" class="btn-batch-delete" style="background:#34495e;">Desmarcar Todos</button>
+          <button id="delete-selected-itens-btn" class="btn-batch-delete" style="background:#c0392b;">Excluir Selecionados</button>
+          <button id="delete-all-itens-btn" class="btn-batch-delete" style="background:#c0392b;">Excluir TODOS os Itens</button>
+        </div>
+        <div id="items-list" class="items-list"></div>
+      </div>
+
+      <div id="usuarios-tab" class="tab-content">
+        <h4>👥 Gerenciar Usuários</h4>
+        <form id="create-user-form" style="display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 15px;">
+          <input type="text" id="new-username" placeholder="Usuário" required style="flex:1">
+          <input type="password" id="new-password" placeholder="Senha" required style="flex:1">
+          <select id="new-role" style="width: auto;">
+            <option value="user">Usuário Comum</option>
+            <option value="admin">Administrador</option>
+          </select>
+          <button type="submit" style="width: auto; background: #27ae60;">Criar</button>
+        </form>
+        <div id="users-list" class="users-list"></div>
+      </div>
+    </div>
+
+    <div id="import-section" class="import-section">
+      <div class="import-title">📥 IMPORTAR CLIENTES</div>
+      <div class="import-area">
+        <div class="import-group">
+          <label>Formato:</label>
+          <select id="client-format">
+            <option value="excel">📊 Excel (XLSX / XLS)</option>
+            <option value="csv">📄 CSV (separado por ;)</option>
+          </select>
+        </div>
+        <div class="import-group">
+          <label>Arquivo de Clientes:</label>
+          <input type="file" id="client-file" accept=".xlsx,.xls,.csv">
+        </div>
+        <button class="btn-import btn-import-clientes" id="import-clientes-btn">📋 Importar Clientes</button>
+      </div>
+
+      <div class="import-title">📦 IMPORTAR ITENS</div>
+      <div class="import-area">
+        <div class="import-group">
+          <label>Formato:</label>
+          <select id="item-format">
+            <option value="excel">📊 Excel (XLSX / XLS)</option>
+            <option value="csv">📄 CSV (separado por ;)</option>
+          </select>
+        </div>
+        <div class="import-group">
+          <label>Arquivo de Itens:</label>
+          <input type="file" id="item-file" accept=".xlsx,.xls,.csv">
+        </div>
+        <button class="btn-import btn-import-itens" id="import-itens-btn">📦 Importar Itens</button>
+      </div>
+    </div>
+
+    <div id="client-search-section" class="client-search">
+      <input type="text" id="client-code" placeholder="Digite o CÓDIGO do cliente" list="client-list">
+      <datalist id="client-list"></datalist>
+      <button id="search-client">🔍 Buscar Cliente</button>
+      <div id="client-counter" class="counter">📊 0 clientes</div>
+    </div>
+
+    <div class="baixar-section">
+      <h4> BAIXAR PENDÊNCIA</h4>
+      <input type="text" id="baixar-numero" placeholder="Digite o NÚMERO da pendência">
+      <button id="btn-baixar-pendencia" class="btn-baixar"> Baixar Pendência</button>
+      <div id="baixar-mensagem" class="baixar-mensagem"></div>
+    </div>
+
+    <div id="client-info" class="client-info">
+      <h3>📋 Informações do Cliente</h3>
+      <div class="info-grid" id="client-details"></div>
+      <div id="pending-alert" class="pending-alert" style="display: none;"></div>
+    </div>
+
+    <div class="user-info">
+      <span>👤 <span id="current-user">Usuário</span> <span id="user-role"></span></span>
+      <button class="btn-logout" id="logout-button">Sair</button>
+    </div>
+
+    <div class="summary-cards">
+      <div class="card total" data-filter="todos"><h3>📊 Total</h3><p id="total-count">0</p></div>
+      <div class="card pendentes" data-filter="pendente"><h3>⏳ Pendentes</h3><p id="pending-count">0</p></div>
+      <div class="card emrota" data-filter="emrota"><h3>🚚 Em Rota</h3><p id="emrota-count">0</p></div>
+      <div class="card resolvidos" data-filter="resolvido"><h3>✅ Resolvidas</h3><p id="resolved-count">0</p></div>
+    </div>
+
+    <div class="controls">
+      <div class="filter-section"><h3>Ordenar</h3><div class="sort-buttons"><button class="sort-btn" data-sort="numero">Nº Pendência</button><button class="sort-btn" data-sort="cliente">Cliente</button><button class="sort-btn" data-sort="cidade">Cidade</button></div></div>
+      <div class="filter-section"><h3>Filtrar Situação</h3><select id="status-filter"><option value="todos">Todos</option><option value="pendente">Pendente</option><option value="emrota">Em Rota</option><option value="resolvido">Resolvido</option></select></div>
+      <div class="filter-section"><h3>Filtrar Motivo</h3><select id="motivo-filter"><option value="todos">Todos</option><option value="Vendedor">Vendedor</option><option value="Devolucao">Devolução</option><option value="Cliente">Cliente</option><option value="Em Rota">Em Rota</option><option value="Interno">Interno</option><option value="Motorista">Motorista</option></select></div>
+      <div class="filter-section"><h3>Filtrar Responsável</h3><select id="responsavel-filter"><option value="todos">Todos</option><option value="NA BASE">NA BASE</option><option value="JONJON">JONJON</option><option value="CELSO">CELSO</option><option value="JAMILSON">JAMILSON</option><option value="RAONEY">RAONEY</option><option value="EDUARDO">EDUARDO</option><option value="RENAN">RENAN</option><option value="EULLER">EULLER</option><option value="THIAGO">THIAGO</option><option value="BRUNO">BRUNO</option><option value="ITALO">ITALO</option><option value="JAIRO">JAIRO</option><option value="SR. CARLOS (AGR)">SR. CARLOS (AGR)</option><option value="KEINHO (AGR)">KEINHO (AGR)</option></select></div>
+      <div class="filter-section"><h3>Filtrar Resolvidas</h3><div class="resolved-filter"><label><input type="checkbox" id="show-resolved" checked> Mostrar resolvidas</label><label><input type="checkbox" id="show-unresolved" checked> Mostrar não resolvidas</label></div></div>
+      <div class="filter-section"><h3>Buscar</h3><input type="text" id="search-input" placeholder="Digite para buscar..."></div>
+      <div class="filter-section"><h3>Ações</h3><button class="btn-add" id="add-button"> Nova Pendência</button><button class="btn-export" id="export-button">Exportar</button><button class="btn-print-selected" id="print-selected-btn">🖨️ Imprimir Selecionadas</button></div>
+    </div>
+
+    <div id="batch-actions" class="batch-actions">
+      <button class="select-all-btn" id="select-all-btn">Selecionar Todos</button>
+      <button class="select-all-btn" id="deselect-all-btn">Desmarcar Todos</button>
+      <button class="btn-delete-selected" id="delete-selected-btn">Excluir Selecionadas</button>
+      <button class="btn-delete-all" id="delete-all-btn">Excluir TODAS Pendências</button>
+      <span id="selected-count">0 selecionada(s)</span>
+    </div>
+
+    <div class="table-container">
+      <table id="main-table">
+        <thead>
+          <tr>
+            <th class="checkbox-col"><input type="checkbox" id="header-checkbox"></th>
+            <th>Nº Pendência</th>
+            <th>Código Cliente</th>
+            <th>Cliente</th>
+            <th>Cidade</th>
+            <th>Data Falta</th>
+            <th>Responsável</th>
+            <th>Motivo</th>
+            <th>Situação</th>
+            <th>Baixada por</th>
+            <th>Registrado por / Data</th>
+            <th>Ações</th>
+          </tr>
+        </thead>
+        <tbody id="pendencies-table"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="modal" id="modal">
+    <div class="modal-content">
+      <h2 id="modal-title">Nova Pendência</h2>
+      <form id="pendencia-form">
+        <div class="form-row">
+          <div class="form-group"><label>Código do Cliente:</label><input type="text" id="cliente-codigo" placeholder="Digite o código" list="client-list-modal" autocomplete="off"></div>
+          <div class="form-group"><label class="required-field">Nome do Cliente:</label><input type="text" id="cliente-nome" placeholder="Nome do cliente" required></div>
+        </div>
+        <div class="form-row">
+          <div class="form-group"><label>Nome Fantasia:</label><input type="text" id="cliente-fantasia" placeholder="Nome fantasia"></div>
+          <div class="form-group"><label>Telefone para Contato:</label><input type="text" id="telefone-input" placeholder="(00) 00000-0000"></div>
+        </div>
+        <div class="form-row">
+          <div class="form-group"><label>Endereço:</label><input type="text" id="endereco-input" placeholder="Endereço completo"></div>
+          <div class="form-group"><label>Cidade:</label><input type="text" id="cidade-input" placeholder="Cidade"></div>
+        </div>
+        <div class="form-row">
+          <div class="form-group"><label>Bairro:</label><input type="text" id="bairro-input" placeholder="Bairro"></div>
+        </div>
+        <div class="form-row">
+          <div class="form-group"><label class="required-field">Data da Falta:</label><input type="date" id="data-falta-input" required></div>
+          <div class="form-group"><label class="required-field">Nº Pendência:</label><input type="text" id="numero-pendencia-input" placeholder="Número" required></div>
+        </div>
+        <div class="form-row">
+          <div class="form-group"><label class="required-field">Motivo:</label>
+            <select id="motivo-input" required>
+              <option value="">Selecione</option>
+              <option value="Vendedor">Vendedor</option>
+              <option value="Devolucao">Devolução</option>
+              <option value="Cliente">Cliente</option>
+              <option value="Em Rota">Em Rota</option>
+              <option value="Interno">Interno</option>
+              <option value="Motorista">Motorista</option>
+            </select>
+          </div>
+          <div class="form-group"><label class="required-field">Tipo de Serviço:</label>
+            <select id="tipo-servico-input" required>
+              <option value="">Selecione</option>
+              <option value="SOMENTE ENTREGAR">📦 SOMENTE ENTREGAR</option>
+              <option value="SOMENTE RECOLHER">🔄 SOMENTE RECOLHER</option>
+              <option value="RECOLHER E ENTREGAR">📦🔄 RECOLHER E ENTREGAR</option>
+            </select>
+          </div>
+        </div>
+        
+        <div id="edit-fields" style="display: none;">
+          <div class="form-row">
+            <div class="form-group"><label>Responsável:</label><select id="responsavel-input"><option value="">Selecione</option><option value="NA BASE">NA BASE</option><option value="JONJON">JONJON</option><option value="CELSO">CELSO</option><option value="JAMILSON">JAMILSON</option><option value="RAONEY">RAONEY</option><option value="EDUARDO">EDUARDO</option><option value="RENAN">RENAN</option><option value="EULLER">EULLER</option><option value="THIAGO">THIAGO</option><option value="BRUNO">BRUNO</option><option value="ITALO">ITALO</option><option value="JAIRO">JAIRO</option><option value="SR. CARLOS (AGR)">SR. CARLOS (AGR)</option><option value="KEINHO (AGR)">KEINHO (AGR)</option></select></div>
+            <div class="form-group"><label>Situação:</label><select id="status-input"><option value="pendente">⏳ Pendente</option><option value="emrota">🚚 Em Rota</option><option value="resolvido">✅ Resolvido</option></select></div>
+          </div>
+        </div>
+        
+        <div class="form-group">
+          <label>Itens da Pendência:</label>
+          <div style="display: flex; gap: 10px; margin-bottom: 10px;">
+            <input type="text" id="item-codigo-input" placeholder="Código do item" style="flex:1" list="item-list-modal" autocomplete="off">
+            <input type="text" id="item-descricao-input" placeholder="Descrição do item" style="flex:2" readonly>
+            <input type="text" id="item-quantidade-input" placeholder="Quantidade (ex: 7UND)" style="flex:1">
+            <button type="button" id="add-item-btn" class="btn-add-item" style="width: auto;">➕ Adicionar</button>
+          </div>
+          <datalist id="item-list-modal"></datalist>
+          <div id="itens-list-pendencia" class="items-list-pendencia">
+            <div style="color: #999; text-align: center; padding: 20px;">Nenhum item adicionado</div>
+          </div>
+        </div>
+
+        <div class="form-group"><label>Observação:</label><textarea id="observacao-input" rows="4" placeholder="Digite a observação..."></textarea></div>
+        
+        <div class="form-actions">
+          <button type="button" class="btn-cancel" id="cancel-button">Cancelar</button>
+          <button type="button" id="print-button" class="btn-print">🖨️ Imprimir</button>
+          <button type="submit" class="btn-save" id="save-button">Salvar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script>
+// Firebase Config
+const firebaseConfig = {
+  apiKey: "AIzaSyBCrefUgqf4Tez8O6kmsFRb3fR7VmxNXTo",
+  authDomain: "pendenciasx.firebaseapp.com",
+  databaseURL: "https://pendenciasx-default-rtdb.firebaseio.com",
+  projectId: "pendenciasx",
+  storageBucket: "pendenciasx.firebasestorage.app",
+  messagingSenderId: "182049973312",
+  appId: "1:182049973312:web:af1fb0103214ee8ceeeba5"
+};
+
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
+
+// ========== FUNCIONALIDADES DE SEGURANÇA ==========
+
+// 1. CONTROLE DE SESSÃO ÚNICA (apenas um usuário por vez)
+let sessionId = null;
+let inactivityTimer = null;
+const INACTIVITY_TIMEOUT = 5 * 60 * 1000; // 5 minutos em milissegundos
+
+// Função para gerar ID de sessão único
+function gerarSessionId() {
+  return Date.now() + '-' + Math.random().toString(36).substr(2, 9);
+}
+
+// Função para verificar se o usuário já está logado em outro lugar
+async function verificarSessaoAtiva(username) {
+  const sessaoRef = db.ref(`sessoes/${username}`);
+  const snapshot = await sessaoRef.once('value');
+  const sessaoAtiva = snapshot.val();
+  if (sessaoAtiva && sessaoAtiva.ativa === true) {
+    // Verifica se a sessão expirou (mais de 8 horas)
+    const agora = Date.now();
+    const tempoSessao = sessaoAtiva.inicio || 0;
+    if (agora - tempoSessao > 8 * 60 * 60 * 1000) {
+      // Sessão expirada, pode logar
+      return false;
+    }
+    return true;
+  }
+  return false;
+}
+
+// Função para registrar sessão no Firebase
+function registrarSessao(username, sessionId) {
+  const sessaoRef = db.ref(`sessoes/${username}`);
+  sessaoRef.set({
+    sessionId: sessionId,
+    ativa: true,
+    inicio: Date.now(),
+    ultimaAtividade: Date.now(),
+    userAgent: navigator.userAgent
+  });
+}
+
+// Função para remover sessão (logout)
+function removerSessao(username) {
+  if (username) {
+    const sessaoRef = db.ref(`sessoes/${username}`);
+    sessaoRef.remove();
+  }
+}
+
+// Função para atualizar última atividade (keep-alive)
+function atualizarAtividade() {
+  if (currentUser && sessionId) {
+    const sessaoRef = db.ref(`sessoes/${currentUser}`);
+    sessaoRef.update({ ultimaAtividade: Date.now() });
+    
+    // Resetar o timer de inatividade
+    resetInactivityTimer();
+  }
+}
+
+// Função para resetar o timer de inatividade
+function resetInactivityTimer() {
+  if (inactivityTimer) {
+    clearTimeout(inactivityTimer);
+  }
+  inactivityTimer = setTimeout(() => {
+    // Timeout atingido - deslogar automaticamente
+    if (currentUser) {
+      console.log('Logout por inatividade');
+      alert('⏰ Sessão expirada por inatividade (5 minutos). Faça login novamente.');
+      logout();
+    }
+  }, INACTIVITY_TIMEOUT);
+}
+
+// Função para iniciar monitoramento de atividade
+function iniciarMonitoramentoAtividade() {
+  // Eventos que indicam atividade do usuário
+  const eventos = ['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart', 'click'];
+  eventos.forEach(evento => {
+    document.addEventListener(evento, atualizarAtividade);
+  });
+  
+  // Timer inicial
+  resetInactivityTimer();
+}
+
+// Função para parar monitoramento de atividade
+function pararMonitoramentoAtividade() {
+  if (inactivityTimer) {
+    clearTimeout(inactivityTimer);
+  }
+}
+
+// Função para salvar sessão no sessionStorage (limpa ao fechar aba/navegador)
+function salvarSessaoLocal(username, sessionId) {
+  sessionStorage.setItem('currentUser', username);
+  sessionStorage.setItem('sessionId', sessionId);
+  sessionStorage.setItem('loginTime', Date.now());
+}
+
+// Função para limpar sessão local
+function limparSessaoLocal() {
+  sessionStorage.removeItem('currentUser');
+  sessionStorage.removeItem('sessionId');
+  sessionStorage.removeItem('loginTime');
+}
+
+// Função para verificar se a sessão local é válida
+function verificarSessaoLocal() {
+  const savedUser = sessionStorage.getItem('currentUser');
+  const savedSessionId = sessionStorage.getItem('sessionId');
+  const loginTime = sessionStorage.getItem('loginTime');
+  
+  if (savedUser && savedSessionId && loginTime) {
+    // Verifica se a sessão não expirou (máximo 8 horas)
+    const agora = Date.now();
+    if (agora - parseInt(loginTime) > 8 * 60 * 60 * 1000) {
+      limparSessaoLocal();
+      return null;
+    }
+    return { username: savedUser, sessionId: savedSessionId };
+  }
+  return null;
+}
+
+// ========== FIM DAS FUNCIONALIDADES DE SEGURANÇA ==========
+
+// USUÁRIOS INICIAIS - TODOS COM PERMISSÕES COMPLETAS PARA ADMIN
+const usuariosIniciais = {
+  'admin': { password: '123456', name: 'Administrador', role: 'admin', permissions: { 
+    create: true, edit: true, delete: true, changeStatus: true, export: true, 
+    importClientes: true, importItens: true, batchDelete: true, deleteAll: true, 
+    manageUsers: true, viewClientes: true, viewPendencias: true, searchCliente: true,
+    print: true, deleteSelectedClientes: true, deleteAllClientes: true,
+    deleteSelectedItens: true, deleteAllItens: true, showSearchCliente: true, baixarPendencia: true
+  } },
+  'xandy': { password: '123456', name: 'Alexandre', role: 'admin', permissions: { 
+    create: true, edit: true, delete: true, changeStatus: true, export: true, 
+    importClientes: true, importItens: true, batchDelete: true, deleteAll: true, 
+    manageUsers: false, viewClientes: true, viewPendencias: true, searchCliente: true,
+    print: true, deleteSelectedClientes: true, deleteAllClientes: true,
+    deleteSelectedItens: true, deleteAllItens: true, showSearchCliente: true, baixarPendencia: true
+  } },
+  'edi': { password: '123456', name: 'Ediclecio', role: 'user', permissions: { 
+    create: true, edit: false, delete: false, changeStatus: true, export: true, 
+    importClientes: false, importItens: false, batchDelete: false, deleteAll: false, 
+    manageUsers: false, viewClientes: true, viewPendencias: true, searchCliente: true,
+    print: true, deleteSelectedClientes: false, deleteAllClientes: false,
+    deleteSelectedItens: false, deleteAllItens: false, showSearchCliente: false, baixarPendencia: true
+  } },
+  'raiane': { password: '123456', name: 'Raiane', role: 'user', permissions: { 
+    create: true, edit: true, delete: false, changeStatus: true, export: false, 
+    importClientes: false, importItens: false, batchDelete: false, deleteAll: false, 
+    manageUsers: false, viewClientes: true, viewPendencias: true, searchCliente: true,
+    print: false, deleteSelectedClientes: false, deleteAllClientes: false,
+    deleteSelectedItens: false, deleteAllItens: false, showSearchCliente: true, baixarPendencia: true
+  } },
+  'rian': { password: '123456', name: 'Rian', role: 'user', permissions: { 
+    create: true, edit: false, delete: false, changeStatus: false, export: true, 
+    importClientes: false, importItens: false, batchDelete: false, deleteAll: false, 
+    manageUsers: false, viewClientes: true, viewPendencias: true, searchCliente: true,
+    print: true, deleteSelectedClientes: false, deleteAllClientes: false,
+    deleteSelectedItens: false, deleteAllItens: false, showSearchCliente: false, baixarPendencia: false
+  } }
+};
+
+let users = JSON.parse(JSON.stringify(usuariosIniciais));
+let currentUser = null;
+let currentPermissions = {};
+let clientesDB = {};
+let itensDB = {};
+let pendencias = {};
+let editingId = null;
+let currentSort = { field: 'numero', order: 'asc' };
+let selectedItems = new Set();
+let currentPendenciaItens = [];
+let selectedClientes = new Set();
+let selectedItens = new Set();
+let nextPendenciaNumero = 1;
+
+const clientesRef = db.ref('clientes');
+const itensRef = db.ref('itens');
+const pendenciasRef = db.ref('pendencias');
+const usersRef = db.ref('users');
+const configRef = db.ref('config');
+
+// ========== FUNÇÃO DE LOGIN MODIFICADA ==========
+async function login(username, password) {
+  // Verifica se o usuário existe
+  if (!users[username] || users[username].password !== password) {
+    return false;
+  }
+  
+  // Verifica se já existe sessão ativa para este usuário
+  const sessaoAtiva = await verificarSessaoAtiva(username);
+  if (sessaoAtiva) {
+    const errorDiv = document.getElementById('login-error');
+    if (errorDiv) {
+      errorDiv.textContent = '❌ Usuário já está logado em outro dispositivo! Faça logout de lá primeiro.';
+      errorDiv.style.display = 'block';
+    }
+    return false;
+  }
+  
+  // Gera nova sessão
+  sessionId = gerarSessionId();
+  
+  // Registra sessão no Firebase
+  registrarSessao(username, sessionId);
+  
+  // Salva sessão localmente (sessionStorage - limpa ao fechar aba)
+  salvarSessaoLocal(username, sessionId);
+  
+  currentUser = username;
+  currentPermissions = users[username].permissions || {};
+  
+  // Inicia monitoramento de atividade (timeout por inatividade)
+  iniciarMonitoramentoAtividade();
+  
+  return true;
+}
+
+// ========== FUNÇÃO DE LOGOUT MODIFICADA ==========
+function logout() {
+  // Para o monitoramento de atividade
+  pararMonitoramentoAtividade();
+  
+  // Remove sessão do Firebase
+  if (currentUser) {
+    removerSessao(currentUser);
+  }
+  
+  // Limpa sessão local
+  limparSessaoLocal();
+  
+  currentUser = null;
+  currentPermissions = {};
+  sessionId = null;
+  
+  showLoginScreen();
+}
+
+// ========== FUNÇÃO PARA VERIFICAR AUTO-LOGIN MODIFICADA ==========
+function checkAutoLogin() {
+  const sessaoLocal = verificarSessaoLocal();
+  if (sessaoLocal && users[sessaoLocal.username]) {
+    // Verifica se a sessão ainda está ativa no Firebase
+    const sessaoRef = db.ref(`sessoes/${sessaoLocal.username}`);
+    sessaoRef.once('value', (snapshot) => {
+      const sessaoFirebase = snapshot.val();
+      if (sessaoFirebase && sessaoFirebase.ativa === true && sessaoFirebase.sessionId === sessaoLocal.sessionId) {
+        // Sessão válida
+        currentUser = sessaoLocal.username;
+        currentPermissions = users[sessaoLocal.username].permissions || {};
+        sessionId = sessaoLocal.sessionId;
+        showMainSystem();
+        iniciarMonitoramentoAtividade();
+        // Atualiza última atividade
+        atualizarAtividade();
+      } else {
+        // Sessão inválida, limpa local
+        limparSessaoLocal();
+        showLoginScreen();
+      }
+    });
+  } else {
+    showLoginScreen();
+  }
+}
+
+function applyPermissions() {
+  if (!currentPermissions) return;
+  
+  const addButton = document.getElementById('add-button');
+  const exportButton = document.getElementById('export-button');
+  const printSelectedBtn = document.getElementById('print-selected-btn');
+  const printButton = document.getElementById('print-button');
+  const btnBaixarPendencia = document.getElementById('btn-baixar-pendencia');
+  const importSection = document.getElementById('import-section');
+  const batchActions = document.getElementById('batch-actions');
+  const deleteSelectedBtn = document.getElementById('delete-selected-btn');
+  const deleteAllBtn = document.getElementById('delete-all-btn');
+  const adminPanel = document.getElementById('admin-panel');
+  const clientSearchSection = document.getElementById('client-search-section');
+  const searchClientBtn = document.getElementById('search-client');
+  
+  if (addButton) addButton.disabled = !currentPermissions.create;
+  if (exportButton) exportButton.disabled = !currentPermissions.export;
+  if (printSelectedBtn) printSelectedBtn.disabled = !currentPermissions.print;
+  if (printButton) printButton.disabled = !currentPermissions.print;
+  if (btnBaixarPendencia) btnBaixarPendencia.disabled = !currentPermissions.baixarPendencia;
+  
+  if (importSection) importSection.style.display = (currentPermissions.importClientes || currentPermissions.importItens) ? 'block' : 'none';
+  if (batchActions) batchActions.style.display = (currentPermissions.batchDelete || currentPermissions.deleteAll) ? 'flex' : 'none';
+  if (deleteSelectedBtn) deleteSelectedBtn.disabled = !currentPermissions.batchDelete;
+  if (deleteAllBtn) deleteAllBtn.disabled = !currentPermissions.deleteAll;
+  if (adminPanel) adminPanel.style.display = currentPermissions.manageUsers ? 'block' : 'none';
+  if (clientSearchSection) clientSearchSection.style.display = currentPermissions.showSearchCliente ? 'flex' : 'none';
+  if (searchClientBtn) searchClientBtn.disabled = !currentPermissions.searchCliente;
+}
+
+function baixarPendencia() {
+  const baixarNumero = document.getElementById('baixar-numero');
+  const baixarMensagem = document.getElementById('baixar-mensagem');
+  const numero = baixarNumero.value.trim();
+  
+  if (!numero) {
+    mostrarMensagem('⚠️ Digite o número da pendência!', '#ff9800');
+    return;
+  }
+  
+  let pendenciaEncontrada = null;
+  let pendenciaId = null;
+  
+  for (const [id, pendencia] of Object.entries(pendencias)) {
+    if (pendencia.numeroPendencia === numero) {
+      pendenciaEncontrada = pendencia;
+      pendenciaId = id;
+      break;
+    }
+  }
+  
+  if (!pendenciaEncontrada) {
+    mostrarMensagem(`❌ Pendência nº ${numero} não encontrada!`, '#e74c3c');
+    baixarNumero.value = '';
+    return;
+  }
+  
+  if (pendenciaEncontrada.status === 'resolvido') {
+    mostrarMensagem(`✅ Pendência nº ${numero} já está resolvida!`, '#f39c12');
+    baixarNumero.value = '';
+    return;
+  }
+  
+  pendenciasRef.child(pendenciaId).update({ 
+    status: 'resolvido',
+    dataBaixa: new Date().toISOString(),
+    baixadoPor: users[currentUser]?.name || currentUser
+  });
+  
+  mostrarMensagem(`✅ Pendência nº ${numero} foi baixada com sucesso!`, '#27ae60');
+  baixarNumero.value = '';
+  
+  setTimeout(() => { 
+    if (baixarMensagem) baixarMensagem.style.display = 'none'; 
+  }, 3000);
+}
+
+function mostrarMensagem(texto, cor) {
+  const baixarMensagem = document.getElementById('baixar-mensagem');
+  baixarMensagem.textContent = texto;
+  baixarMensagem.style.backgroundColor = cor + '20';
+  baixarMensagem.style.color = cor;
+  baixarMensagem.style.display = 'flex';
+  setTimeout(() => { baixarMensagem.style.display = 'none'; }, 3000);
+}
+
+const btnBaixarPendencia = document.getElementById('btn-baixar-pendencia');
+if (btnBaixarPendencia) {
+  btnBaixarPendencia.addEventListener('click', baixarPendencia);
+}
+
+function preencherDadosCliente(codigo) {
+  const cliente = clientesDB[codigo];
+  if (cliente) {
+    document.getElementById('cliente-nome').value = cliente.nome || '';
+    document.getElementById('cliente-fantasia').value = cliente.fantasia || '';
+    document.getElementById('endereco-input').value = cliente.endereco || '';
+    document.getElementById('telefone-input').value = cliente.telefone || '';
+    document.getElementById('cidade-input').value = cliente.cidade || '';
+    document.getElementById('bairro-input').value = cliente.bairro || '';
+    return true;
+  }
+  return false;
+}
+
+function preencherDadosItem(codigo) {
+  const item = itensDB[codigo];
+  if (item) {
+    document.getElementById('item-descricao-input').value = item.descricao || '';
+  }
+}
+
+const clienteCodigoInput = document.getElementById('cliente-codigo');
+if (clienteCodigoInput) {
+  clienteCodigoInput.addEventListener('blur', () => { 
+    const codigo = clienteCodigoInput.value.trim(); 
+    if (codigo) preencherDadosCliente(codigo); 
+  });
+}
+
+const itemCodigoInputElem = document.getElementById('item-codigo-input');
+if (itemCodigoInputElem) {
+  itemCodigoInputElem.addEventListener('blur', () => { 
+    const codigo = itemCodigoInputElem.value.trim(); 
+    if (codigo) preencherDadosItem(codigo); 
+  });
+}
+
+function addItemToPendencia() {
+  const codigo = document.getElementById('item-codigo-input')?.value.trim();
+  const descricao = document.getElementById('item-descricao-input')?.value.trim();
+  const quantidade = document.getElementById('item-quantidade-input')?.value.trim();
+  if (!codigo && !descricao) { alert('Digite o código ou descrição do item!'); return; }
+  if (!quantidade) { alert('Digite a quantidade do item!'); return; }
+  currentPendenciaItens.push({ codigo: codigo || '', descricao: descricao || '', quantidade: quantidade });
+  renderPendenciaItensList();
+  document.getElementById('item-codigo-input').value = '';
+  document.getElementById('item-descricao-input').value = '';
+  document.getElementById('item-quantidade-input').value = '';
+}
+
+function renderPendenciaItensList() {
+  const itensListPendencia = document.getElementById('itens-list-pendencia');
+  if (!itensListPendencia) return;
+  if (currentPendenciaItens.length === 0) { 
+    itensListPendencia.innerHTML = '<div style="color:#999;text-align:center;padding:20px;">Nenhum item adicionado</div>'; 
+    return; 
+  }
+  itensListPendencia.innerHTML = currentPendenciaItens.map((item, index) => `
+    <div class="item-pendencia-display">
+      <span><strong>${item.codigo || '---'}</strong> - ${item.descricao || '---'}</span>
+      <span>Qtd: ${item.quantidade}</span>
+      <button type="button" class="btn-remove-item" onclick="removePendenciaItem(${index})" style="background:#e74c3c;color:white;border:none;padding:2px 8px;border-radius:3px;cursor:pointer;">Remover</button>
+    </div>
+  `).join('');
+}
+
+window.removePendenciaItem = (index) => { 
+  currentPendenciaItens.splice(index, 1); 
+  renderPendenciaItensList(); 
+};
+
+function loadClientesFromFirebase() {
+  clientesRef.on('value', (snapshot) => {
+    clientesDB = snapshot.val() || {};
+    updateClientList();
+    updateClientCounter();
+    renderClientesList();
+  });
+}
+
+function loadItensFromFirebase() {
+  itensRef.on('value', (snapshot) => {
+    itensDB = snapshot.val() || {};
+    updateItemLists();
+    renderItemsList();
+  });
+}
+
+function updateItemLists() {
+  const datalist = document.getElementById('item-list-modal');
+  if (datalist) {
+    datalist.innerHTML = '';
+    Object.keys(itensDB).forEach(codigo => {
+      const option = document.createElement('option');
+      option.value = codigo;
+      option.textContent = `${codigo} - ${itensDB[codigo].descricao || ''}`;
+      datalist.appendChild(option);
+    });
+  }
+}
+
+function renderClientesList() {
+  const container = document.getElementById('clientes-list');
+  if (!container) return;
+  const searchTerm = document.getElementById('search-cliente-admin')?.value.toLowerCase() || '';
+  const filtered = Object.entries(clientesDB).filter(([codigo, item]) => codigo.toLowerCase().includes(searchTerm) || (item.nome || '').toLowerCase().includes(searchTerm));
+  container.innerHTML = filtered.map(([codigo, item]) => `
+    <div class="cliente-row" data-codigo="${codigo}">
+      <input type="checkbox" class="cliente-checkbox" data-codigo="${codigo}" style="width:20px; margin:0;">
+      <div class="cliente-info"><strong>${codigo}</strong> - ${item.nome || ''}<br><small>${item.fantasia || ''} | ${item.telefone || ''}</small></div>
+      <div class="cliente-actions"><button class="btn-delete" onclick="deleteCliente('${codigo}')"> Excluir</button></div>
+    </div>
+  `).join('');
+}
+
+function renderItemsList() {
+  const container = document.getElementById('items-list');
+  if (!container) return;
+  const searchTerm = document.getElementById('search-item-admin')?.value.toLowerCase() || '';
+  const filtered = Object.entries(itensDB).filter(([codigo, item]) => codigo.toLowerCase().includes(searchTerm) || (item.descricao || '').toLowerCase().includes(searchTerm));
+  container.innerHTML = filtered.map(([codigo, item]) => `
+    <div class="item-row" data-codigo="${codigo}">
+      <input type="checkbox" class="item-checkbox" data-codigo="${codigo}" style="width:20px; margin:0;">
+      <div class="item-info"><strong>${codigo}</strong> - ${item.descricao || ''}</div>
+      <div class="item-actions"><button class="btn-delete" onclick="deleteItem('${codigo}')"> Excluir</button></div>
+    </div>
+  `).join('');
+}
+
+window.deleteCliente = (codigo) => {
+  if (confirm(`Excluir cliente ${codigo}?`)) { 
+    delete clientesDB[codigo]; 
+    clientesRef.set(clientesDB); 
+    renderClientesList(); 
+    updateClientList(); 
+    updateClientCounter(); 
+  }
+};
+
+window.deleteItem = (codigo) => {
+  if (confirm(`Excluir item ${codigo}?`)) { 
+    delete itensDB[codigo]; 
+    itensRef.set(itensDB); 
+    renderItemsList(); 
+    updateItemLists(); 
+  }
+};
+
+function updateClientList() {
+  const datalist = document.getElementById('client-list');
+  const modalDatalist = document.getElementById('client-list-modal');
+  if (datalist) {
+    datalist.innerHTML = '';
+    Object.keys(clientesDB).forEach(codigo => {
+      const option = document.createElement('option');
+      option.value = codigo;
+      option.textContent = `${codigo} - ${clientesDB[codigo].nome || ''}`;
+      datalist.appendChild(option);
+    });
+  }
+  if (modalDatalist) {
+    modalDatalist.innerHTML = '';
+    Object.keys(clientesDB).forEach(codigo => {
+      const option = document.createElement('option');
+      option.value = codigo;
+      option.textContent = `${codigo} - ${clientesDB[codigo].nome || ''}`;
+      modalDatalist.appendChild(option);
+    });
+  }
+}
+
+function updateClientCounter() {
+  const total = Object.keys(clientesDB).length;
+  const clientCounter = document.getElementById('client-counter');
+  if (clientCounter) clientCounter.innerHTML = `📊 ${total} clientes`;
+}
+
+function loadPendenciasFromFirebase() {
+  pendenciasRef.on('value', (snapshot) => {
+    pendencias = snapshot.val() || {};
+    calcularProximoNumero();
+    updateTable();
+  });
+}
+
+const searchClientBtnElem = document.getElementById('search-client');
+if (searchClientBtnElem) {
+  searchClientBtnElem.addEventListener('click', () => {
+    if (!currentPermissions.searchCliente) { alert('Sem permissão!'); return; }
+    const codigo = document.getElementById('client-code').value.trim();
+    if (codigo && clientesDB[codigo]) {
+      const cliente = clientesDB[codigo];
+      const clientDetails = document.getElementById('client-details');
+      const clientInfoDiv = document.getElementById('client-info');
+      if (clientDetails) {
+        clientDetails.innerHTML = `<div class="info-item"><span class="info-label">Código:</span> ${cliente.codigo || codigo}</div>
+          <div class="info-item"><span class="info-label">Nome:</span> ${cliente.nome || '-'}</div>
+          <div class="info-item"><span class="info-label">Fantasia:</span> ${cliente.fantasia || '-'}</div>
+          <div class="info-item"><span class="info-label">Endereço:</span> ${cliente.endereco || '-'}</div>
+          <div class="info-item"><span class="info-label">Cidade:</span> ${cliente.cidade || '-'}</div>
+          <div class="info-item"><span class="info-label">Bairro:</span> ${cliente.bairro || '-'}</div>`;
+        if (clientInfoDiv) clientInfoDiv.style.display = 'block';
+      }
+    } else { alert('Cliente não encontrado!'); }
+  });
+}
+
+function importarClientes(file) {
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    const data = new Uint8Array(e.target.result);
+    const workbook = XLSX.read(data, { type: 'array' });
+    const sheet = workbook.Sheets[workbook.SheetNames[0]];
+    const rows = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: "" });
+    if (!rows || rows.length < 2) { alert('Arquivo vazio!'); return; }
+    const novosClientes = {};
+    let importados = 0;
+    for (let i = 1; i < rows.length; i++) {
+      const row = rows[i];
+      if (!row) continue;
+      let codigo = row[3];
+      if (!codigo) codigo = row[0];
+      if (codigo && String(codigo).trim()) {
+        const codigoStr = String(codigo).trim();
+        novosClientes[codigoStr] = { codigo: codigoStr, nome: row[1] || '', fantasia: row[2] || '', endereco: row[5] || '', telefone: row[6] || '', cidade: row[4] || '', bairro: row[7] || '' };
+        importados++;
+      }
+    }
+    Object.assign(clientesDB, novosClientes);
+    clientesRef.set(clientesDB);
+    alert(`✅ Importados ${importados} clientes!`);
+    renderClientesList();
+    updateClientList();
+    updateClientCounter();
+  };
+  reader.readAsArrayBuffer(file);
+}
+
+function importarItens(file) {
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    const data = new Uint8Array(e.target.result);
+    const workbook = XLSX.read(data, { type: 'array' });
+    const sheet = workbook.Sheets[workbook.SheetNames[0]];
+    const rows = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: "" });
+    if (!rows || rows.length < 2) { alert('Arquivo vazio!'); return; }
+    const headers = rows[0].map(h => String(h).trim().toLowerCase());
+    const novosItens = {};
+    let importados = 0;
+    for (let i = 1; i < rows.length; i++) {
+      const row = rows[i];
+      if (!row) continue;
+      const codigo = row[headers.indexOf('codigo')] || row[headers.indexOf('código')] || row[0];
+      if (codigo && String(codigo).trim()) {
+        const codigoStr = String(codigo).trim();
+        novosItens[codigoStr] = { codigo: codigoStr, descricao: row[headers.indexOf('descricao')] || row[headers.indexOf('descrição')] || '', unidade: row[headers.indexOf('unidade')] || '', valor: row[headers.indexOf('valor')] || '' };
+        importados++;
+      }
+    }
+    itensRef.set(novosItens);
+    alert(`✅ Importados ${importados} itens!`);
+  };
+  reader.readAsArrayBuffer(file);
+}
+
+const importClientesBtnElem = document.getElementById('import-clientes-btn');
+if (importClientesBtnElem) {
+  importClientesBtnElem.addEventListener('click', () => {
+    if (!currentPermissions.importClientes) { alert('Sem permissão!'); return; }
+    const file = document.getElementById('client-file').files[0];
+    if (!file) { alert('Selecione um arquivo de clientes!'); return; }
+    importarClientes(file);
+  });
+}
+
+const importItensBtnElem = document.getElementById('import-itens-btn');
+if (importItensBtnElem) {
+  importItensBtnElem.addEventListener('click', () => {
+    if (!currentPermissions.importItens) { alert('Sem permissão!'); return; }
+    const file = document.getElementById('item-file').files[0];
+    if (!file) { alert('Selecione um arquivo de itens!'); return; }
+    importarItens(file);
+  });
+}
+
+function loadUsersFromFirebase() {
+  usersRef.on('value', (snapshot) => {
+    const firebaseUsers = snapshot.val();
+    if (firebaseUsers) {
+      users = { ...usuariosIniciais, ...firebaseUsers };
+    } else {
+      users = JSON.parse(JSON.stringify(usuariosIniciais));
+      usersRef.set(users);
+    }
+    if (currentUser && (currentUser === 'admin' || users[currentUser]?.role === 'admin')) {
+      loadUsersList();
+    }
+  });
+}
+
+function saveUsersToFirebase() { 
+  usersRef.set(users); 
+}
+
+function loadUltimoNumero() {
+  configRef.child('ultimoNumeroPendencia').on('value', (snapshot) => {
+    const ultimo = snapshot.val();
+    if (ultimo !== null && ultimo > 0) {
+      nextPendenciaNumero = ultimo + 1;
+    } else {
+      calcularProximoNumero();
+    }
+  });
+}
+
+function calcularProximoNumero() {
+  const numeros = Object.values(pendencias)
+    .map(p => parseInt(p.numeroPendencia))
+    .filter(n => !isNaN(n));
+  
+  if (numeros.length === 0) {
+    nextPendenciaNumero = 1;
+  } else {
+    nextPendenciaNumero = Math.max(...numeros) + 1;
+  }
+}
+
+function getNextNumeroPendencia() {
+  return nextPendenciaNumero;
+}
+
+function loadUsersList() {
+  const usersListDiv = document.getElementById('users-list');
+  if (!usersListDiv) return;
+  usersListDiv.innerHTML = '';
+  const permissoesLista = [
+    { id: 'create', label: '📝 Criar Pendência' }, { id: 'edit', label: '✏️ Editar Pendência' }, { id: 'delete', label: '🗑️ Excluir Pendência' },
+    { id: 'changeStatus', label: '🔄 Alterar Status' }, { id: 'export', label: '📎 Exportar Dados' }, { id: 'print', label: '🖨️ Imprimir' },
+    { id: 'importClientes', label: '📥 Importar Clientes' }, { id: 'importItens', label: '📦 Importar Itens' }, { id: 'batchDelete', label: '📦 Excluir Lote Pendências' },
+    { id: 'deleteAll', label: '⚠️ Excluir Todas Pendências' }, { id: 'manageUsers', label: '👥 Gerenciar Usuários' }, { id: 'viewClientes', label: '👁️ Visualizar Clientes' },
+    { id: 'viewPendencias', label: '👁️ Visualizar Pendências' }, { id: 'searchCliente', label: '🔍 Buscar Cliente' }, { id: 'showSearchCliente', label: '🔎 Mostrar Busca de Cliente' },
+    { id: 'baixarPendencia', label: ' Baixar Pendência' }, { id: 'deleteSelectedClientes', label: '🗑️ Excluir Clientes Selecionados' },
+    { id: 'deleteAllClientes', label: '⚠️ Excluir Todos Clientes' }, { id: 'deleteSelectedItens', label: '🗑️ Excluir Itens Selecionados' },
+    { id: 'deleteAllItens', label: '⚠️ Excluir Todos Itens' }
+  ];
+  Object.entries(users).forEach(([username, userData]) => {
+    if (username === currentUser) return;
+    const perms = userData.permissions || {};
+    const userItem = document.createElement('div');
+    userItem.className = 'user-item';
+    userItem.innerHTML = `
+      <div><strong>${username}</strong> - ${userData.name || username}<span class="${userData.role === 'admin' ? 'admin-badge' : 'user-badge'}">${userData.role === 'admin' ? 'Admin' : 'User'}</span></div>
+      <div class="user-permissions">${permissoesLista.map(p => `<label class="perm-checkbox"><input type="checkbox" class="perm-${p.id}" ${perms[p.id] ? 'checked' : ''}> ${p.label}</label>`).join('')}</div>
+      <div class="user-actions"><button class="btn-reset-password" onclick="resetUserPassword('${username}')">🔑 Resetar Senha</button><button class="btn-delete-user" onclick="deleteUser('${username}')"> Excluir Usuário</button></div>
+    `;
+    permissoesLista.forEach(p => {
+      const cb = userItem.querySelector(`.perm-${p.id}`);
+      if (cb) cb.addEventListener('change', () => {
+        users[username].permissions = users[username].permissions || {};
+        users[username].permissions[p.id] = cb.checked;
+        saveUsersToFirebase();
+        if (username === currentUser) { currentPermissions = users[username].permissions; applyPermissions(); }
+      });
+    });
+    usersListDiv.appendChild(userItem);
+  });
+}
+
+window.resetUserPassword = function(username) { 
+  const newPass = prompt(`Nova senha para ${username}:`); 
+  if (newPass) { 
+    users[username].password = newPass; 
+    saveUsersToFirebase(); 
+    alert('Senha alterada!'); 
+  } 
+};
+
+window.deleteUser = function(username) { 
+  if (confirm(`Excluir usuário ${username}?`)) { 
+    delete users[username]; 
+    saveUsersToFirebase(); 
+    loadUsersList(); 
+  } 
+};
+
+document.getElementById('create-user-form')?.addEventListener('submit', (e) => {
+  e.preventDefault();
+  const newUser = document.getElementById('new-username').value.trim();
+  const newPass = document.getElementById('new-password').value;
+  const newRole = document.getElementById('new-role').value;
+  if (users[newUser]) { alert('Usuário já existe!'); return; }
+  users[newUser] = { password: newPass, name: newUser, role: newRole, permissions: { create: true, edit: false, delete: false, changeStatus: true, export: false, print: false, importClientes: false, importItens: false, batchDelete: false, deleteAll: false, manageUsers: false, viewClientes: true, viewPendencias: true, searchCliente: true, showSearchCliente: true, baixarPendencia: true, deleteSelectedClientes: false, deleteAllClientes: false, deleteSelectedItens: false, deleteAllItens: false } };
+  saveUsersToFirebase();
+  loadUsersList();
+  alert('Usuário criado!');
+});
+
+document.querySelectorAll('.tab-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const tabId = btn.dataset.tab;
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+    document.getElementById(tabId).classList.add('active');
+    if (tabId === 'clientes-tab') renderClientesList();
+    if (tabId === 'itens-tab') renderItemsList();
+  });
+});
+
+document.getElementById('search-cliente-admin')?.addEventListener('input', () => renderClientesList());
+document.getElementById('search-item-admin')?.addEventListener('input', () => renderItemsList());
+
+function updateSelectedCount() {
+  const selectedCountSpan = document.getElementById('selected-count');
+  const headerCheckbox = document.getElementById('header-checkbox');
+  if (selectedCountSpan) selectedCountSpan.textContent = `${selectedItems.size} selecionada(s)`;
+  if (headerCheckbox) {
+    const allCbs = document.querySelectorAll('.row-checkbox');
+    const allChecked = allCbs.length > 0 && Array.from(allCbs).every(cb => cb.checked);
+    headerCheckbox.checked = allChecked;
+    headerCheckbox.indeterminate = !allChecked && Array.from(allCbs).some(cb => cb.checked);
+  }
+}
+
+function selectAllPendencias() {
+  if (!currentPermissions.batchDelete) { alert('Sem permissão!'); return; }
+  document.querySelectorAll('.row-checkbox').forEach(cb => { cb.checked = true; selectedItems.add(cb.dataset.id); });
+  updateSelectedCount();
+}
+function deselectAllPendencias() { document.querySelectorAll('.row-checkbox').forEach(cb => { cb.checked = false; selectedItems.delete(cb.dataset.id); }); updateSelectedCount(); }
+function deleteSelectedPendencias() {
+  if (!currentPermissions.batchDelete) { alert('Sem permissão!'); return; }
+  if (selectedItems.size === 0) { alert('Nenhuma selecionada!'); return; }
+  if (confirm(`Excluir ${selectedItems.size} pendência(s)?`)) { selectedItems.forEach(id => pendenciasRef.child(id).remove()); selectedItems.clear(); updateSelectedCount(); }
+}
+function deleteAllPendencias() {
+  if (!currentPermissions.deleteAll) { alert('Sem permissão!'); return; }
+  const total = Object.keys(pendencias).length;
+  if (total === 0) { alert('Nenhuma pendência!'); return; }
+  if (confirm(`⚠️ EXCLUIR TODAS as ${total} pendências?`)) {
+    if (prompt('Digite "EXCLUIR" para confirmar:') === 'EXCLUIR') { pendenciasRef.set(null); selectedItems.clear(); updateSelectedCount(); alert('Todas excluídas!'); }
+  }
+}
+
+function showMainSystem() {
+  const loginScreen = document.getElementById('login-screen');
+  const mainSystem = document.getElementById('main-system');
+  const currentUserSpan = document.getElementById('current-user');
+  const userRoleSpan = document.getElementById('user-role');
+  
+  if (loginScreen) loginScreen.style.display = 'none';
+  if (mainSystem) mainSystem.style.display = 'block';
+  if (currentUserSpan) currentUserSpan.textContent = users[currentUser]?.name || currentUser;
+  if (userRoleSpan) userRoleSpan.textContent = (users[currentUser]?.role === 'admin') ? '(Admin)' : '(Usuário)';
+  applyPermissions();
+  if (currentPermissions.manageUsers) loadUsersList();
+  renderClientesList();
+  renderItemsList();
+  updateItemLists();
+}
+
+function showLoginScreen() {
+  const loginScreen = document.getElementById('login-screen');
+  const mainSystem = document.getElementById('main-system');
+  
+  // Para monitoramento se estiver ativo
+  pararMonitoramentoAtividade();
+  
+  // Limpa o timer de inatividade
+  if (inactivityTimer) {
+    clearTimeout(inactivityTimer);
+  }
+  
+  if (loginScreen) loginScreen.style.display = 'block';
+  if (mainSystem) mainSystem.style.display = 'none';
+  
+  // Limpa campos de login
+  const usernameInput = document.getElementById('login-username');
+  const passwordInput = document.getElementById('login-password');
+  if (usernameInput) usernameInput.value = '';
+  if (passwordInput) passwordInput.value = '';
+  
+  const errorDiv = document.getElementById('login-error');
+  if (errorDiv) errorDiv.style.display = 'none';
+}
+
+function imprimirDocumento(htmlContent) {
+  const printWindow = window.open('', '_blank', 'width=800,height=600,toolbar=yes,scrollbars=yes,menubar=yes');
+  
+  if (printWindow) {
+    printWindow.document.write(htmlContent);
+    printWindow.document.close();
+    printWindow.focus();
+    printWindow.print();
+  } else {
+    alert('Por favor, permita pop-ups para este site para imprimir o documento.');
+  }
+}
+
+function formatDateTime(dateString) {
+  if (!dateString) return '-';
+  const date = new Date(dateString);
+  return date.toLocaleString('pt-BR', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit'
+  });
+}
+
+function gerarHTMLImpressao(pendenciaData, isMultiple = false) {
+  function renderPendencia(p) {
+    const enderecoCompleto = `${p.endereco || ''}`.trim();
+    const nomeFantasia = p.fantasia || '';
+    const nomeCliente = p.cliente || '';
+    
+    let nomeFantasiaHTML = '';
+    if (nomeFantasia && nomeFantasia !== nomeCliente) {
+      nomeFantasiaHTML = `<div style="margin-bottom:5px;"><strong style="display:inline-block; width:100px;">FANTASIA:</strong> ${nomeFantasia}</div>`;
+    } else if (nomeFantasia && !nomeCliente) {
+      nomeFantasiaHTML = `<div style="margin-bottom:5px;"><strong style="display:inline-block; width:100px;">FANTASIA:</strong> ${nomeFantasia}</div>`;
+    }
+    
+    let itensHTML = '';
+    if (p.itens && p.itens.length > 0) {
+      itensHTML = p.itens.map(item => `
+        <tr>
+          <td style="border: 1px solid #000; padding: 8px;">${item.codigo || '-'}</td>
+          <td style="border: 1px solid #000; padding: 8px;">${item.descricao || '-'}</td>
+          <td style="border: 1px solid #000; padding: 8px;">${item.quantidade || '0'}</td>
+        </tr>
+      `).join('');
+    } else {
+      itensHTML = '<tr><td colspan="3" style="text-align:center; border:1px solid #000; padding:8px;">Nenhum item cadastrado<\/td><\/tr>';
+    }
+    
+    return `
+      <div class="print-document" style="margin-bottom: 30px; page-break-after: always; border: 1px solid #ddd; padding: 20px; margin-bottom: 20px; background: white; font-family: 'Courier New', Courier, monospace;">
+        <div style="text-align:center; font-size:16pt; font-weight:bold; color:#1a472a; margin-bottom:10px; padding-bottom:5px; border-bottom:2px solid #1a472a;">DISLAM DISTRIBUIDORA</div>
+        <div style="text-align:center; margin-bottom:15px;">
+          <h1 style="font-size:20pt; font-weight:bold; text-transform:uppercase;">PENDÊNCIA Nº ${p.numeroPendencia || 'N/A'}</h1>
+          <div style="display:flex; justify-content:center; margin-top:5px; font-weight:bold; border-bottom:1px solid #000; padding-bottom:5px;">
+            <span style="font-size:12pt;">Data da Falta: ${p.dataFalta ? new Date(p.dataFalta).toLocaleDateString('pt-BR') : ''}</span>
+          </div>
+        </div>
+        
+        <div style="margin-bottom:15px; border:1px solid #000; padding:10px;">
+          <div style="margin-bottom:5px;"><strong style="display:inline-block; width:100px;">CÓDIGO:</strong> ${p.clienteCodigo || ''}</div>
+          <div style="margin-bottom:5px;"><strong style="display:inline-block; width:100px;">CLIENTE:</strong> ${nomeCliente || ''}</div>
+          ${nomeFantasiaHTML}
+          <div style="margin-bottom:5px;"><strong style="display:inline-block; width:100px;">ENDEREÇO:</strong> ${enderecoCompleto || '_________________________'}</div>
+          <div style="margin-bottom:5px;"><strong style="display:inline-block; width:100px;">BAIRRO:</strong> ${p.bairro || '_________________'}<strong style="display:inline-block; width:80px; margin-left:20px;">CIDADE:</strong> ${p.cidade || '_______________'}</div>
+        </div>
+        
+        <div style="margin:15px 0; text-align:center;">
+          <div style="font-size:22pt; font-weight:bold; color:#c0392b; text-transform:uppercase; letter-spacing:4px; padding:8px; border:2px solid #c0392b; display:inline-block;">ATENÇÃO!!</div>
+        </div>
+        
+        <div style="margin:15px 0; text-align:center;">
+          <div style="font-size:16pt; font-weight:bold; color:#1a472a; text-transform:uppercase; padding:10px; background-color:#f0f0f0; border:1px solid #1a472a; display:inline-block;">${p.tipoServico || 'SOMENTE ENTREGAR'}</div>
+        </div>
+        
+        <table style="width:100%; border-collapse:collapse; margin:15px 0;">
+          <thead>
+            <tr style="background-color:#f0f0f0;">
+              <th style="border:1px solid #000; padding:8px; text-align:left;">CÓDIGO</th>
+              <th style="border:1px solid #000; padding:8px; text-align:left;">DESCRIÇÃO DO PRODUTO</th>
+              <th style="border:1px solid #000; padding:8px; text-align:left;">QUANTIDADE</th>
+              
+          </thead>
+          <tbody>
+            ${itensHTML}
+          </tbody>
+        <\/table>
+        
+        <div style="margin:15px 0; border:1px solid #000; padding:15px; min-height:100px;">
+          <div style="font-weight:bold; margin-bottom:10px; font-size:12pt;">OBSERVAÇÃO:</div>
+          <div style="line-height:1.5; min-height:80px;">${p.observacao || '_________________________________________________'}</div>
+        </div>
+        
+        <div style="margin-top:50px; display:flex; justify-content:space-between;">
+          <div style="width:45%; text-align:center;">
+            <div style="margin-top:40px; border-top:1px solid #000; width:100%;"></div>
+            <p style="margin-top:5px;">Assinatura do Cliente:</p>
+          </div>
+          <div style="width:45%; text-align:center;">
+            <div style="margin-top:40px; border-top:1px solid #000; width:100%;"></div>
+            <p style="margin-top:5px;">Motorista Responsável:</p>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+  
+  let conteudo = `<!DOCTYPE html>
+  <html>
+  <head>
+    <meta charset="UTF-8">
+    <title>DISLAM - Pendência</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      body {
+        font-family: 'Courier New', Courier, monospace;
+        margin: 0;
+        padding: 20px;
+        font-size: 11pt;
+        background: white;
+      }
+      @media print {
+        body {
+          margin: 0;
+          padding: 0;
+        }
+        .print-document {
+          page-break-after: always;
+        }
+      }
+    </style>
+  </head>
+  <body>`;
+  
+  if (isMultiple) {
+    pendenciaData.forEach((p) => {
+      conteudo += renderPendencia(p);
+    });
+  } else {
+    conteudo += renderPendencia(pendenciaData);
+  }
+  
+  conteudo += `</body></html>`;
+  return conteudo;
+}
+
+function imprimirPendenciaAtual() {
+  if (!currentPermissions.print) { 
+    alert('Sem permissão para imprimir!'); 
+    return; 
+  }
+  
+  const pendenciaData = {
+    clienteCodigo: document.getElementById('cliente-codigo')?.value.trim() || '',
+    cliente: document.getElementById('cliente-nome')?.value.trim() || '',
+    fantasia: document.getElementById('cliente-fantasia')?.value.trim() || '',
+    endereco: document.getElementById('endereco-input')?.value.trim() || '',
+    cidade: document.getElementById('cidade-input')?.value.trim() || '',
+    bairro: document.getElementById('bairro-input')?.value.trim() || '',
+    dataFalta: document.getElementById('data-falta-input')?.value || '',
+    numeroPendencia: document.getElementById('numero-pendencia-input')?.value.trim() || '',
+    tipoServico: document.getElementById('tipo-servico-input')?.value || 'SOMENTE ENTREGAR',
+    observacao: document.getElementById('observacao-input')?.value.trim() || '',
+    itens: currentPendenciaItens
+  };
+  
+  const html = gerarHTMLImpressao(pendenciaData, false);
+  imprimirDocumento(html);
+}
+
+function imprimirPendenciasSelecionadas() {
+  if (!currentPermissions.print) { 
+    alert('Sem permissão para imprimir!'); 
+    return; 
+  }
+  if (selectedItems.size === 0) { 
+    alert('Selecione pelo menos uma pendência para imprimir!'); 
+    return; 
+  }
+  
+  const pendenciasParaImprimir = [];
+  selectedItems.forEach(id => { 
+    if (pendencias[id]) pendenciasParaImprimir.push(pendencias[id]); 
+  });
+  
+  if (pendenciasParaImprimir.length === 0) { 
+    alert('Nenhuma pendência encontrada!'); 
+    return; 
+  }
+  
+  const html = gerarHTMLImpressao(pendenciasParaImprimir, true);
+  imprimirDocumento(html);
+}
+
+window.imprimirPendencia = (id) => {
+  if (!currentPermissions.print) { 
+    alert('Sem permissão para imprimir!'); 
+    return; 
+  }
+  const p = pendencias[id];
+  if (p) {
+    const html = gerarHTMLImpressao(p, false);
+    imprimirDocumento(html);
+  } else {
+    alert('Pendência não encontrada!');
+  }
+};
+
+function updateTable() {
+  const statusFilter = document.getElementById('status-filter');
+  const motivoFilter = document.getElementById('motivo-filter');
+  const responsavelFilter = document.getElementById('responsavel-filter');
+  const searchInput = document.getElementById('search-input');
+  const showResolved = document.getElementById('show-resolved');
+  const showUnresolved = document.getElementById('show-unresolved');
+  const totalCountEl = document.getElementById('total-count');
+  const pendingCountEl = document.getElementById('pending-count');
+  const emrotaCountEl = document.getElementById('emrota-count');
+  const resolvedCountEl = document.getElementById('resolved-count');
+  const pendenciasTable = document.getElementById('pendencies-table');
+  
+  const statusVal = statusFilter ? statusFilter.value : 'todos';
+  const motivoVal = motivoFilter ? motivoFilter.value : 'todos';
+  const respVal = responsavelFilter ? responsavelFilter.value : 'todos';
+  const searchVal = searchInput ? searchInput.value.toLowerCase() : '';
+  const showRes = showResolved ? showResolved.checked : true;
+  const showUnres = showUnresolved ? showUnresolved.checked : true;
+  
+  let pendArray = Object.entries(pendencias).map(([id, p]) => ({ id, ...p }));
+  pendArray = pendArray.filter(p => {
+    if (statusVal !== 'todos' && p.status !== statusVal) return false;
+    if (motivoVal !== 'todos' && p.motivo !== motivoVal) return false;
+    if (respVal !== 'todos' && p.responsavel !== respVal) return false;
+    const isRes = p.status === 'resolvido';
+    if (!showRes && isRes) return false;
+    if (!showUnres && !isRes) return false;
+    if (!p.cliente?.toLowerCase().includes(searchVal) && !p.numeroPendencia?.toLowerCase().includes(searchVal)) return false;
+    return true;
+  });
+  
+  pendArray.sort((a,b) => {
+    let va = a[currentSort.field] || '', vb = b[currentSort.field] || '';
+    if (currentSort.field === 'data') { va = new Date(va); vb = new Date(vb); }
+    else { va = String(va).toLowerCase(); vb = String(vb).toLowerCase(); }
+    return currentSort.order === 'asc' ? (va > vb ? 1 : -1) : (va < vb ? 1 : -1);
+  });
+  
+  if (totalCountEl) totalCountEl.textContent = Object.keys(pendencias).length;
+  if (pendingCountEl) pendingCountEl.textContent = Object.values(pendencias).filter(p => p.status === 'pendente').length;
+  if (emrotaCountEl) emrotaCountEl.textContent = Object.values(pendencias).filter(p => p.status === 'emrota').length;
+  if (resolvedCountEl) resolvedCountEl.textContent = Object.values(pendencias).filter(p => p.status === 'resolvido').length;
+  
+  if (pendenciasTable) {
+    pendenciasTable.innerHTML = '';
+    if (pendArray.length === 0) { pendenciasTable.innerHTML = '<tr><td colspan="12" style="text-align:center">Nenhuma pendência encontrada<\/td><\/tr>'; return; }
+    
+    pendArray.forEach(p => {
+      const statusClass = p.status === 'pendente' ? 'status-pendente' : (p.status === 'emrota' ? 'status-emrota' : 'status-resolvido');
+      const statusText = p.status === 'pendente' ? 'Pendente' : (p.status === 'emrota' ? 'Em Rota' : 'Resolvido');
+      
+      const tr = document.createElement('tr');
+      let botoesAcao = '';
+      if (currentPermissions.edit) botoesAcao += `<button class="action-btn btn-edit" onclick="window.editarPendencia('${p.id}')">✏️ Editar</button>`;
+      if (currentPermissions.delete) botoesAcao += `<button class="action-btn btn-delete" onclick="window.excluirPendencia('${p.id}')">🗑️ Excluir</button>`;
+      if (currentPermissions.print) botoesAcao += `<button class="action-btn btn-print-row" onclick="window.imprimirPendencia('${p.id}')" title="Imprimir">🖨️ Imprimir</button>`;
+      
+      const baixadoPor = p.baixadoPor ? p.baixadoPor : (p.status === 'resolvido' ? (p.registradoPor || '-') : '-');
+      const dataBaixa = p.dataBaixa ? new Date(p.dataBaixa).toLocaleDateString('pt-BR') : '';
+      const baixadoDisplay = baixadoPor !== '-' ? `${baixadoPor}${dataBaixa ? ` (${dataBaixa})` : ''}` : '-';
+      
+      const registradoPor = p.registradoPor || '-';
+      const registradoEm = p.registradoEm ? new Date(p.registradoEm).toLocaleString('pt-BR') : '-';
+      const registradoDisplay = `${registradoPor} - ${registradoEm}`;
+      
+      tr.innerHTML = `
+        <td class="checkbox-col"><input type="checkbox" class="row-checkbox" data-id="${p.id}" ${selectedItems.has(p.id) ? 'checked' : ''}></td>
+        <td><strong>${p.numeroPendencia}</strong></td>
+        <td>${p.clienteCodigo || '-'}</td>
+        <td>${p.cliente || '-'}</td>
+        <td>${p.cidade || '-'}</td>
+        <td>${new Date(p.dataFalta).toLocaleDateString('pt-BR')}</td>
+        <td>${p.responsavel || '-'}</td>
+        <td>${p.motivo || '-'}</td>
+        <td><span class="${statusClass}" onclick="window.mudarStatus('${p.id}')">${statusText}</span></td>
+        <td>${baixadoDisplay}</td>
+        <td>${registradoDisplay}</td>
+        <td>${botoesAcao}</td>
+      `;
+      const cb = tr.querySelector('.row-checkbox');
+      if (cb) cb.addEventListener('change', (e) => { if (e.target.checked) selectedItems.add(p.id); else selectedItems.delete(p.id); updateSelectedCount(); });
+      pendenciasTable.appendChild(tr);
+    });
+  }
+  updateSelectedCount();
+}
+
+window.editarPendencia = (id) => {
+  if (!currentPermissions.edit) { alert('Sem permissão para editar!'); return; }
+  const pendencia = pendencias[id];
+  if (!pendencia) { alert('Pendência não encontrada!'); return; }
+  editingId = id;
+  const modalTitle = document.getElementById('modal-title');
+  if (modalTitle) modalTitle.textContent = 'Editar Pendência';
+  document.getElementById('cliente-codigo').value = pendencia.clienteCodigo || '';
+  document.getElementById('cliente-nome').value = pendencia.cliente || '';
+  document.getElementById('cliente-fantasia').value = pendencia.fantasia || '';
+  document.getElementById('endereco-input').value = pendencia.endereco || '';
+  document.getElementById('telefone-input').value = pendencia.telefone || '';
+  document.getElementById('cidade-input').value = pendencia.cidade || '';
+  document.getElementById('bairro-input').value = pendencia.bairro || '';
+  document.getElementById('data-falta-input').value = pendencia.dataFalta;
+  document.getElementById('numero-pendencia-input').value = pendencia.numeroPendencia;
+  document.getElementById('motivo-input').value = pendencia.motivo || '';
+  document.getElementById('tipo-servico-input').value = pendencia.tipoServico || 'SOMENTE ENTREGAR';
+  document.getElementById('observacao-input').value = pendencia.observacao || '';
+  if (document.getElementById('responsavel-input')) document.getElementById('responsavel-input').value = pendencia.responsavel || '';
+  if (document.getElementById('status-input')) document.getElementById('status-input').value = pendencia.status || 'pendente';
+  currentPendenciaItens = pendencia.itens ? [...pendencia.itens] : [];
+  renderPendenciaItensList();
+  if (document.getElementById('edit-fields')) document.getElementById('edit-fields').style.display = 'block';
+  document.getElementById('modal').style.display = 'flex';
+};
+
+window.excluirPendencia = (id) => {
+  if (!currentPermissions.delete) { alert('Sem permissão para excluir!'); return; }
+  if (confirm('Excluir esta pendência?')) { pendenciasRef.child(id).remove(); }
+};
+
+window.mudarStatus = async (id) => {
+  if (!currentPermissions.changeStatus) { alert('Sem permissão!'); return; }
+  const p = pendencias[id];
+  if (!p) return;
+  const novosStatus = { pendente: 'emrota', emrota: 'resolvido', resolvido: 'pendente' };
+  await pendenciasRef.child(id).update({ status: novosStatus[p.status] });
+};
+
+const addButton = document.getElementById('add-button');
+if (addButton) {
+  addButton.addEventListener('click', () => {
+    if (!currentPermissions.create) { alert('Sem permissão!'); return; }
+    editingId = null;
+    document.getElementById('modal-title').textContent = 'Nova Pendência';
+    document.getElementById('pendencia-form').reset();
+    if (document.getElementById('edit-fields')) document.getElementById('edit-fields').style.display = 'none';
+    currentPendenciaItens = [];
+    renderPendenciaItensList();
+    
+    const proximoNumero = getNextNumeroPendencia();
+    document.getElementById('numero-pendencia-input').value = proximoNumero;
+    
+    document.getElementById('modal').style.display = 'flex';
+    setTimeout(() => document.getElementById('cliente-codigo').focus(), 100);
+  });
+}
+
+const cancelButton = document.getElementById('cancel-button');
+if (cancelButton) {
+  cancelButton.addEventListener('click', () => { 
+    document.getElementById('modal').style.display = 'none'; 
+  });
+}
+
+const pendenciaFormElem = document.getElementById('pendencia-form');
+if (pendenciaFormElem) {
+  pendenciaFormElem.addEventListener('submit', (e) => {
+    e.preventDefault();
+    
+    if (!editingId) {
+      const numeroDigitado = document.getElementById('numero-pendencia-input').value.trim();
+      const numeroExistente = Object.values(pendencias).some(p => p.numeroPendencia === numeroDigitado);
+      if (numeroExistente) {
+        alert(`O número ${numeroDigitado} já está em uso! Por favor, use outro número.`);
+        return;
+      }
+    }
+    
+    const pendencia = {
+      clienteCodigo: document.getElementById('cliente-codigo').value.trim(),
+      cliente: document.getElementById('cliente-nome').value.trim(),
+      fantasia: document.getElementById('cliente-fantasia').value.trim(),
+      endereco: document.getElementById('endereco-input').value.trim(),
+      telefone: document.getElementById('telefone-input').value.trim(),
+      cidade: document.getElementById('cidade-input').value.trim(),
+      bairro: document.getElementById('bairro-input').value.trim(),
+      dataFalta: document.getElementById('data-falta-input').value,
+      numeroPendencia: document.getElementById('numero-pendencia-input').value.trim(),
+      responsavel: document.getElementById('responsavel-input') ? document.getElementById('responsavel-input').value : '',
+      motivo: document.getElementById('motivo-input').value,
+      status: document.getElementById('status-input') ? document.getElementById('status-input').value : 'pendente',
+      tipoServico: document.getElementById('tipo-servico-input').value,
+      observacao: document.getElementById('observacao-input').value.trim(),
+      itens: currentPendenciaItens,
+      registradoPor: users[currentUser]?.name || currentUser,
+      registradoEm: new Date().toISOString()
+    };
+    
+    if (editingId) { 
+      pendenciasRef.child(editingId).update(pendencia);
+    } else { 
+      pendenciasRef.push().set(pendencia);
+      calcularProximoNumero();
+    }
+    document.getElementById('modal').style.display = 'none';
+  });
+}
+
+const exportButton = document.getElementById('export-button');
+if (exportButton) {
+  exportButton.addEventListener('click', () => {
+    if (!currentPermissions.export) { alert('Sem permissão!'); return; }
+    const csv = ['Nº Pendência;Código;Cliente;Cidade;Data Falta;Responsável;Motivo;Situação;Baixada por;Registrado por;Data Registro'];
+    Object.values(pendencias).forEach(p => {
+      const baixadoPor = p.baixadoPor ? p.baixadoPor : (p.status === 'resolvido' ? (p.registradoPor || '') : '');
+      const registradoPor = p.registradoPor || '';
+      const registradoEm = p.registradoEm ? new Date(p.registradoEm).toLocaleString('pt-BR') : '';
+      csv.push(`${p.numeroPendencia || ''};${p.clienteCodigo || ''};${p.cliente || ''};${p.cidade || ''};${p.dataFalta};${p.responsavel || ''};${p.motivo || ''};${p.status};${baixadoPor};${registradoPor};${registradoEm}`);
+    });
+    const blob = new Blob([csv.join('\n')], { type: 'text/csv;charset=utf-8' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = `pendencias_${new Date().toISOString().split('T')[0]}.csv`;
+    link.click();
+  });
+}
+
+document.querySelectorAll('.sort-btn').forEach(btn => btn.addEventListener('click', () => {
+  const field = btn.dataset.sort;
+  if (currentSort.field === field) currentSort.order = currentSort.order === 'asc' ? 'desc' : 'asc';
+  else { currentSort.field = field; currentSort.order = 'asc'; }
+  updateTable();
+}));
+
+const addItemBtn = document.getElementById('add-item-btn');
+if (addItemBtn) addItemBtn.addEventListener('click', addItemToPendencia);
+
+const printButtonElem = document.getElementById('print-button');
+if (printButtonElem) printButtonElem.addEventListener('click', imprimirPendenciaAtual);
+
+const printSelectedBtnElem = document.getElementById('print-selected-btn');
+if (printSelectedBtnElem) printSelectedBtnElem.addEventListener('click', imprimirPendenciasSelecionadas);
+
+const statusFilterElem = document.getElementById('status-filter');
+const motivoFilterElem = document.getElementById('motivo-filter');
+const responsavelFilterElem = document.getElementById('responsavel-filter');
+const searchInputElem = document.getElementById('search-input');
+const showResolvedElem = document.getElementById('show-resolved');
+const showUnresolvedElem = document.getElementById('show-unresolved');
+const headerCheckboxElem = document.getElementById('header-checkbox');
+const selectAllBtnElem = document.getElementById('select-all-btn');
+const deselectAllBtnElem = document.getElementById('deselect-all-btn');
+const deleteSelectedBtnElem = document.getElementById('delete-selected-btn');
+const deleteAllBtnElem = document.getElementById('delete-all-btn');
+
+if (statusFilterElem) statusFilterElem.addEventListener('change', updateTable);
+if (motivoFilterElem) motivoFilterElem.addEventListener('change', updateTable);
+if (responsavelFilterElem) responsavelFilterElem.addEventListener('change', updateTable);
+if (searchInputElem) searchInputElem.addEventListener('input', updateTable);
+if (showResolvedElem) showResolvedElem.addEventListener('change', updateTable);
+if (showUnresolvedElem) showUnresolvedElem.addEventListener('change', updateTable);
+if (headerCheckboxElem) headerCheckboxElem.addEventListener('change', (e) => e.target.checked ? selectAllPendencias() : deselectAllPendencias());
+if (selectAllBtnElem) selectAllBtnElem.addEventListener('click', selectAllPendencias);
+if (deselectAllBtnElem) deselectAllBtnElem.addEventListener('click', deselectAllPendencias);
+if (deleteSelectedBtnElem) deleteSelectedBtnElem.addEventListener('click', deleteSelectedPendencias);
+if (deleteAllBtnElem) deleteAllBtnElem.addEventListener('click', deleteAllPendencias);
+
+const logoutButton = document.getElementById('logout-button');
+if (logoutButton) logoutButton.addEventListener('click', logout);
+
+const loginFormElem = document.getElementById('login-form');
+if (loginFormElem) {
+  loginFormElem.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const errorDiv = document.getElementById('login-error');
+    const username = document.getElementById('login-username').value;
+    const password = document.getElementById('login-password').value;
+    const success = await login(username, password);
+    if (success) {
+      if (errorDiv) errorDiv.style.display = 'none';
+      showMainSystem();
+    } else if (!errorDiv?.innerText.includes('já está logado')) {
+      if (errorDiv) {
+        errorDiv.textContent = 'Usuário ou senha inválidos!';
+        errorDiv.style.display = 'block';
+      }
+    }
+  });
+}
+
+// Listener para quando a página for fechada/recarregada
+window.addEventListener('beforeunload', () => {
+  if (currentUser) {
+    // Remove sessão ao fechar a aba/navegador
+    removerSessao(currentUser);
+  }
+});
+
+// Eventos da tela de login
+const showChangePasswordLink = document.getElementById('show-change-password');
+const changePasswordForm = document.getElementById('change-password-form');
+const cancelChangePassword = document.getElementById('cancel-change-password');
+const loginError = document.getElementById('login-error');
+
+if (showChangePasswordLink) {
+  showChangePasswordLink.addEventListener('click', () => {
+    loginFormElem.style.display = 'none';
+    changePasswordForm.style.display = 'block';
+    if (loginError) loginError.style.display = 'none';
+  });
+}
+
+if (cancelChangePassword) {
+  cancelChangePassword.addEventListener('click', () => {
+    changePasswordForm.style.display = 'none';
+    loginFormElem.style.display = 'block';
+  });
+}
+
+if (changePasswordForm) {
+  changePasswordForm.addEventListener('submit', (e) => {
+    e.preventDefault();
+    
+    const username = document.getElementById('change-username').value.trim();
+    const currentPassword = document.getElementById('current-password').value;
+    const newPassword = document.getElementById('new-password').value;
+    const confirmPassword = document.getElementById('confirm-new-password').value;
+    
+    const errorDiv = document.getElementById('change-password-error');
+    const successDiv = document.getElementById('change-password-success');
+    
+    if (errorDiv) errorDiv.style.display = 'none';
+    if (successDiv) successDiv.style.display = 'none';
+    
+    if (newPassword !== confirmPassword) {
+      if (errorDiv) {
+        errorDiv.textContent = 'A nova senha e a confirmação não coincidem!';
+        errorDiv.style.display = 'block';
+      }
+      return;
+    }
+    
+    if (!users[username]) {
+      if (errorDiv) {
+        errorDiv.textContent = 'Usuário não encontrado!';
+        errorDiv.style.display = 'block';
+      }
+      return;
+    }
+    
+    if (users[username].password !== currentPassword) {
+      if (errorDiv) {
+        errorDiv.textContent = 'Senha atual incorreta!';
+        errorDiv.style.display = 'block';
+      }
+      return;
+    }
+    
+    if (newPassword.length < 4) {
+      if (errorDiv) {
+        errorDiv.textContent = 'A nova senha deve ter pelo menos 4 caracteres!';
+        errorDiv.style.display = 'block';
+      }
+      return;
+    }
+    
+    users[username].password = newPassword;
+    saveUsersToFirebase();
+    
+    if (successDiv) {
+      successDiv.textContent = 'Senha alterada com sucesso!';
+      successDiv.style.display = 'block';
+    }
+    
+    setTimeout(() => {
+      if (changePasswordForm) changePasswordForm.style.display = 'none';
+      if (loginFormElem) loginFormElem.style.display = 'block';
+      if (successDiv) successDiv.style.display = 'none';
+      
+      // Se o usuário que trocou a senha está logado, força logout
+      if (currentUser === username) {
+        alert('Senha alterada! Faça login novamente.');
+        logout();
+      }
+    }, 2000);
+  });
+}
+
+document.addEventListener("DOMContentLoaded", function() {
+  const printBtn = document.getElementById('print-button');
+  if (printBtn) {
+    printBtn.onclick = imprimirPendenciaAtual;
+  }
+  
+  const printSelectedBtn = document.getElementById('print-selected-btn');
+  if (printSelectedBtn) {
+    printSelectedBtn.onclick = imprimirPendenciasSelecionadas;
+  }
+  
+  console.log('✅ Sistema inicializado - Segurança ativa!');
+  console.log('✅ Controle de sessão única ativo');
+  console.log('✅ Timeout de inatividade: 5 minutos');
+});
+
+loadUltimoNumero();
+loadUsersFromFirebase();
+loadClientesFromFirebase();
+loadItensFromFirebase();
+loadPendenciasFromFirebase();
+checkAutoLogin();
+</script>
+</body>
+</html>
