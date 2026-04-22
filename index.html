@@ -917,7 +917,7 @@
     <div class="controls">
       <div class="filter-section"><h3>Ordenar</h3><div class="sort-buttons"><button class="sort-btn" data-sort="numero">Nº Pendência</button><button class="sort-btn" data-sort="cliente">Cliente</button><button class="sort-btn" data-sort="cidade">Cidade</button></div></div>
       <div class="filter-section"><h3>Filtrar Situação</h3><select id="status-filter"><option value="todos">Todos</option><option value="pendente">Pendente</option><option value="emrota">Em Rota</option><option value="resolvido">Resolvido</option></select></div>
-      <div class="filter-section"><h3>Filtrar Motivo</h3><select id="motivo-filter"><option value="todos">Todos</option><option value="Vendedor">Vendedor</option><option value="Devolucao">Devolução</option><option value="Cliente">Cliente</option><option value="Em Rota">Em Rota</option><option value="Interno">Interno</option><option value="Motorista">Motorista</option></select></div>
+      <div class="filter-section"><h3>Filtrar Motivo</h3><select id="motivo-filter"><option value="todos">Todos</option><option value="Sem Motivo">Sem Motivo</option><option value="Vendedor">Vendedor</option><option value="Devolucao">Devolução</option><option value="Cliente">Cliente</option><option value="Em Rota">Em Rota</option><option value="Interno">Interno</option><option value="Motorista">Motorista</option></select></div>
       <div class="filter-section"><h3>Filtrar Responsável</h3><select id="responsavel-filter"><option value="todos">Todos</option><option value="NA BASE">NA BASE</option><option value="JONJON">JONJON</option><option value="CELSO">CELSO</option><option value="JAMILSON">JAMILSON</option><option value="RAONEY">RAONEY</option><option value="EDUARDO">EDUARDO</option><option value="RENAN">RENAN</option><option value="EULLER">EULLER</option><option value="THIAGO">THIAGO</option><option value="BRUNO">BRUNO</option><option value="ITALO">ITALO</option><option value="JAIRO">JAIRO</option><option value="SR. CARLOS (AGR)">SR. CARLOS (AGR)</option><option value="KEINHO (AGR)">KEINHO (AGR)</option></select></div>
       <div class="filter-section"><h3>Filtrar Resolvidas</h3><div class="resolved-filter"><label><input type="checkbox" id="show-resolved" checked> Mostrar resolvidas</label><label><input type="checkbox" id="show-unresolved" checked> Mostrar não resolvidas</label></div></div>
       <div class="filter-section"><h3>Buscar</h3><input type="text" id="search-input" placeholder="Digite para buscar..."></div>
@@ -982,6 +982,7 @@
           <div class="form-group"><label class="required-field">Motivo:</label>
             <select id="motivo-input" required>
               <option value="">Selecione</option>
+              <option value="Sem Motivo">Sem Motivo</option>
               <option value="Vendedor">Vendedor</option>
               <option value="Devolucao">Devolução</option>
               <option value="Cliente">Cliente</option>
@@ -1011,7 +1012,7 @@
           <label>Itens da Pendência:</label>
           <div style="display: flex; gap: 10px; margin-bottom: 10px;">
             <input type="text" id="item-codigo-input" placeholder="Código do item" style="flex:1" list="item-list-modal" autocomplete="off">
-            <input type="text" id="item-descricao-input" placeholder="Descrição do item" style="flex:2" readonly>
+            <input type="text" id="item-descricao-input" placeholder="Descrição do item" style="flex:2">
             <input type="text" id="item-quantidade-input" placeholder="Quantidade (ex: 7UND)" style="flex:1">
             <button type="button" id="add-item-btn" class="btn-add-item" style="width: auto;">➕ Adicionar</button>
           </div>
@@ -1412,24 +1413,39 @@ if (btnBaixarPendencia) {
   btnBaixarPendencia.addEventListener('click', baixarPendencia);
 }
 
+// ========== FUNÇÃO MODIFICADA: preencher dados do cliente (mas permite edição) ==========
 function preencherDadosCliente(codigo) {
   const cliente = clientesDB[codigo];
   if (cliente) {
-    document.getElementById('cliente-nome').value = cliente.nome || '';
-    document.getElementById('cliente-fantasia').value = cliente.fantasia || '';
-    document.getElementById('endereco-input').value = cliente.endereco || '';
-    document.getElementById('telefone-input').value = cliente.telefone || '';
-    document.getElementById('cidade-input').value = cliente.cidade || '';
-    document.getElementById('bairro-input').value = cliente.bairro || '';
+    // Preenche os campos, mas NÃO bloqueia edição (o usuário pode alterar)
+    const nomeInput = document.getElementById('cliente-nome');
+    const fantasiaInput = document.getElementById('cliente-fantasia');
+    const enderecoInput = document.getElementById('endereco-input');
+    const telefoneInput = document.getElementById('telefone-input');
+    const cidadeInput = document.getElementById('cidade-input');
+    const bairroInput = document.getElementById('bairro-input');
+    
+    // Só preenche se o campo estiver vazio (para não sobrescrever edição manual)
+    if (nomeInput && !nomeInput.value) nomeInput.value = cliente.nome || '';
+    if (fantasiaInput && !fantasiaInput.value) fantasiaInput.value = cliente.fantasia || '';
+    if (enderecoInput && !enderecoInput.value) enderecoInput.value = cliente.endereco || '';
+    if (telefoneInput && !telefoneInput.value) telefoneInput.value = cliente.telefone || '';
+    if (cidadeInput && !cidadeInput.value) cidadeInput.value = cliente.cidade || '';
+    if (bairroInput && !bairroInput.value) bairroInput.value = cliente.bairro || '';
     return true;
   }
   return false;
 }
 
+// ========== FUNÇÃO MODIFICADA: preencher dados do item (mas permite edição) ==========
 function preencherDadosItem(codigo) {
   const item = itensDB[codigo];
   if (item) {
-    document.getElementById('item-descricao-input').value = item.descricao || '';
+    const descricaoInput = document.getElementById('item-descricao-input');
+    // Só preenche se o campo estiver vazio (para não sobrescrever edição manual)
+    if (descricaoInput && !descricaoInput.value) {
+      descricaoInput.value = item.descricao || '';
+    }
   }
 }
 
@@ -2502,8 +2518,8 @@ document.addEventListener("DOMContentLoaded", function() {
   }
   
   console.log('✅ Sistema inicializado - Segurança ativa!');
-  console.log('✅ Controle de sessão única ativo');
-  console.log('✅ Timeout de inatividade: 5 minutos');
+  console.log('✅ Campos editáveis - você pode alterar nome do cliente e descrição do item manualmente');
+  console.log('✅ Novo motivo "Sem Motivo" adicionado');
 });
 
 loadUltimoNumero();
