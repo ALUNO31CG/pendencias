@@ -592,8 +592,10 @@
     }
     .btn-delete-user { background: #e74c3c; }
     .btn-reset-password { background: #f39c12; }
+    .btn-disconnect-user { background: #e67e22; }
     .admin-badge { background: #e74c3c; color: white; padding: 2px 8px; border-radius: 12px; font-size: 10px; margin-left: 8px; }
     .user-badge { background: #3498db; color: white; padding: 2px 8px; border-radius: 12px; font-size: 10px; margin-left: 8px; }
+    .session-active-badge { background: #27ae60; color: white; padding: 2px 8px; border-radius: 12px; font-size: 10px; margin-left: 8px; }
 
     .item-pendencia-row {
       display: flex;
@@ -646,7 +648,6 @@
       width: auto;
     }
 
-    /* Estilos para impressão */
     @media print {
       body * {
         visibility: hidden;
@@ -720,6 +721,31 @@
     }
     .change-password-link a:hover {
       text-decoration: underline;
+    }
+
+    .sessoes-list {
+      margin-top: 15px;
+      max-height: 400px;
+      overflow-y: auto;
+      border: 1px solid #ddd;
+      border-radius: 5px;
+    }
+    .sessao-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px;
+      border-bottom: 1px solid #eee;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+    .sessao-info {
+      flex: 2;
+    }
+    .sessao-actions button {
+      width: auto;
+      margin: 0;
+      padding: 6px 12px;
     }
   </style>
 
@@ -803,6 +829,7 @@
         <button class="tab-btn active" data-tab="clientes-tab">📋 Clientes Cadastrados</button>
         <button class="tab-btn" data-tab="itens-tab">📦 Itens Cadastrados</button>
         <button class="tab-btn" data-tab="usuarios-tab">👥 Gerenciar Usuários</button>
+        <button class="tab-btn" data-tab="sessoes-tab">🔌 Sessões Ativas</button>
       </div>
 
       <div id="clientes-tab" class="tab-content active">
@@ -845,6 +872,12 @@
           <button type="submit" style="width: auto; background: #27ae60;">Criar</button>
         </form>
         <div id="users-list" class="users-list"></div>
+      </div>
+
+      <div id="sessoes-tab" class="tab-content">
+        <h4>🔌 Sessões Ativas de Usuários</h4>
+        <p style="font-size: 12px; color: #666; margin-bottom: 10px;">Aqui você pode visualizar e desconectar usuários que estão logados.</p>
+        <div id="sessoes-list" class="sessoes-list"></div>
       </div>
     </div>
 
@@ -1049,136 +1082,23 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
 
-// ========== FUNCIONALIDADES DE SEGURANÇA ==========
-
-// 1. CONTROLE DE SESSÃO ÚNICA (apenas um usuário por vez)
+// ========== VARIÁVEIS GLOBAIS ==========
 let sessionId = null;
 let inactivityTimer = null;
-const INACTIVITY_TIMEOUT = 5 * 60 * 1000; // 5 minutos em milissegundos
+let sessaoListenerRef = null;
+let currentUser = null;
+let currentPermissions = {};
+let clientesDB = {};
+let itensDB = {};
+let pendencias = {};
+let editingId = null;
+let currentSort = { field: 'numero', order: 'asc' };
+let selectedItems = new Set();
+let currentPendenciaItens = [];
+let nextPendenciaNumero = 1;
+const INACTIVITY_TIMEOUT = 5 * 60 * 1000;
 
-// Função para gerar ID de sessão único
-function gerarSessionId() {
-  return Date.now() + '-' + Math.random().toString(36).substr(2, 9);
-}
-
-// Função para verificar se o usuário já está logado em outro lugar
-async function verificarSessaoAtiva(username) {
-  const sessaoRef = db.ref(`sessoes/${username}`);
-  const snapshot = await sessaoRef.once('value');
-  const sessaoAtiva = snapshot.val();
-  if (sessaoAtiva && sessaoAtiva.ativa === true) {
-    // Verifica se a sessão expirou (mais de 8 horas)
-    const agora = Date.now();
-    const tempoSessao = sessaoAtiva.inicio || 0;
-    if (agora - tempoSessao > 8 * 60 * 60 * 1000) {
-      // Sessão expirada, pode logar
-      return false;
-    }
-    return true;
-  }
-  return false;
-}
-
-// Função para registrar sessão no Firebase
-function registrarSessao(username, sessionId) {
-  const sessaoRef = db.ref(`sessoes/${username}`);
-  sessaoRef.set({
-    sessionId: sessionId,
-    ativa: true,
-    inicio: Date.now(),
-    ultimaAtividade: Date.now(),
-    userAgent: navigator.userAgent
-  });
-}
-
-// Função para remover sessão (logout)
-function removerSessao(username) {
-  if (username) {
-    const sessaoRef = db.ref(`sessoes/${username}`);
-    sessaoRef.remove();
-  }
-}
-
-// Função para atualizar última atividade (keep-alive)
-function atualizarAtividade() {
-  if (currentUser && sessionId) {
-    const sessaoRef = db.ref(`sessoes/${currentUser}`);
-    sessaoRef.update({ ultimaAtividade: Date.now() });
-    
-    // Resetar o timer de inatividade
-    resetInactivityTimer();
-  }
-}
-
-// Função para resetar o timer de inatividade
-function resetInactivityTimer() {
-  if (inactivityTimer) {
-    clearTimeout(inactivityTimer);
-  }
-  inactivityTimer = setTimeout(() => {
-    // Timeout atingido - deslogar automaticamente
-    if (currentUser) {
-      console.log('Logout por inatividade');
-      alert('⏰ Sessão expirada por inatividade (5 minutos). Faça login novamente.');
-      logout();
-    }
-  }, INACTIVITY_TIMEOUT);
-}
-
-// Função para iniciar monitoramento de atividade
-function iniciarMonitoramentoAtividade() {
-  // Eventos que indicam atividade do usuário
-  const eventos = ['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart', 'click'];
-  eventos.forEach(evento => {
-    document.addEventListener(evento, atualizarAtividade);
-  });
-  
-  // Timer inicial
-  resetInactivityTimer();
-}
-
-// Função para parar monitoramento de atividade
-function pararMonitoramentoAtividade() {
-  if (inactivityTimer) {
-    clearTimeout(inactivityTimer);
-  }
-}
-
-// Função para salvar sessão no sessionStorage (limpa ao fechar aba/navegador)
-function salvarSessaoLocal(username, sessionId) {
-  sessionStorage.setItem('currentUser', username);
-  sessionStorage.setItem('sessionId', sessionId);
-  sessionStorage.setItem('loginTime', Date.now());
-}
-
-// Função para limpar sessão local
-function limparSessaoLocal() {
-  sessionStorage.removeItem('currentUser');
-  sessionStorage.removeItem('sessionId');
-  sessionStorage.removeItem('loginTime');
-}
-
-// Função para verificar se a sessão local é válida
-function verificarSessaoLocal() {
-  const savedUser = sessionStorage.getItem('currentUser');
-  const savedSessionId = sessionStorage.getItem('sessionId');
-  const loginTime = sessionStorage.getItem('loginTime');
-  
-  if (savedUser && savedSessionId && loginTime) {
-    // Verifica se a sessão não expirou (máximo 8 horas)
-    const agora = Date.now();
-    if (agora - parseInt(loginTime) > 8 * 60 * 60 * 1000) {
-      limparSessaoLocal();
-      return null;
-    }
-    return { username: savedUser, sessionId: savedSessionId };
-  }
-  return null;
-}
-
-// ========== FIM DAS FUNCIONALIDADES DE SEGURANÇA ==========
-
-// USUÁRIOS INICIAIS - TODOS COM PERMISSÕES COMPLETAS PARA ADMIN
+// ========== USUÁRIOS INICIAIS ==========
 const usuariosIniciais = {
   'admin': { password: '123456', name: 'Administrador', role: 'admin', permissions: { 
     create: true, edit: true, delete: true, changeStatus: true, export: true, 
@@ -1190,7 +1110,7 @@ const usuariosIniciais = {
   'xandy': { password: '123456', name: 'Alexandre', role: 'admin', permissions: { 
     create: true, edit: true, delete: true, changeStatus: true, export: true, 
     importClientes: true, importItens: true, batchDelete: true, deleteAll: true, 
-    manageUsers: false, viewClientes: true, viewPendencias: true, searchCliente: true,
+    manageUsers: true, viewClientes: true, viewPendencias: true, searchCliente: true,
     print: true, deleteSelectedClientes: true, deleteAllClientes: true,
     deleteSelectedItens: true, deleteAllItens: true, showSearchCliente: true, baixarPendencia: true
   } },
@@ -1207,111 +1127,294 @@ const usuariosIniciais = {
     manageUsers: false, viewClientes: true, viewPendencias: true, searchCliente: true,
     print: false, deleteSelectedClientes: false, deleteAllClientes: false,
     deleteSelectedItens: false, deleteAllItens: false, showSearchCliente: true, baixarPendencia: true
-  } },
-  'rian': { password: '123456', name: 'Rian', role: 'user', permissions: { 
-    create: true, edit: false, delete: false, changeStatus: false, export: true, 
-    importClientes: false, importItens: false, batchDelete: false, deleteAll: false, 
-    manageUsers: false, viewClientes: true, viewPendencias: true, searchCliente: true,
-    print: true, deleteSelectedClientes: false, deleteAllClientes: false,
-    deleteSelectedItens: false, deleteAllItens: false, showSearchCliente: false, baixarPendencia: false
   } }
 };
 
 let users = JSON.parse(JSON.stringify(usuariosIniciais));
-let currentUser = null;
-let currentPermissions = {};
-let clientesDB = {};
-let itensDB = {};
-let pendencias = {};
-let editingId = null;
-let currentSort = { field: 'numero', order: 'asc' };
-let selectedItems = new Set();
-let currentPendenciaItens = [];
-let selectedClientes = new Set();
-let selectedItens = new Set();
-let nextPendenciaNumero = 1;
 
+// ========== REFERÊNCIAS FIREBASE ==========
 const clientesRef = db.ref('clientes');
 const itensRef = db.ref('itens');
 const pendenciasRef = db.ref('pendencias');
 const usersRef = db.ref('users');
 const configRef = db.ref('config');
+const sessoesRef = db.ref('sessoes');
 
-// ========== FUNÇÃO DE LOGIN MODIFICADA ==========
+// ========== FUNÇÕES DE SESSÃO (CORRIGIDAS) ==========
+function gerarSessionId() {
+  return Date.now() + '-' + Math.random().toString(36).substr(2, 9);
+}
+
+function registrarSessao(username, sid) {
+  sessoesRef.child(username).set({
+    sessionId: sid,
+    ativa: true,
+    inicio: Date.now(),
+    ultimaAtividade: Date.now(),
+    userAgent: navigator.userAgent
+  });
+}
+
+function removerSessao(username) {
+  if (username) {
+    sessoesRef.child(username).remove();
+  }
+}
+
+async function desconectarUsuarioRemoto(username) {
+  // Verifica se o usuário atual tem permissão
+  if (!currentPermissions.manageUsers && currentUser !== 'admin') {
+    alert('Sem permissão para desconectar usuários! Apenas administradores podem fazer isso.');
+    return false;
+  }
+  try {
+    // Remove a sessão do Firebase
+    await sessoesRef.child(username).remove();
+    console.log(`✅ Usuário ${username} desconectado com sucesso!`);
+    return true;
+  } catch (error) {
+    console.error('Erro ao desconectar:', error);
+    return false;
+  }
+}
+
+// Função para monitorar se a sessão atual foi removida (desconectado por admin)
+function iniciarMonitoramentoSessao() {
+  if (currentUser && sessionId) {
+    // Remove listener anterior se existir
+    if (sessaoListenerRef) {
+      sessoesRef.child(currentUser).off('value', sessaoListenerRef);
+    }
+    
+    // Cria nova função de callback
+    const callback = (snapshot) => {
+      const sessaoAtual = snapshot.val();
+      // Se a sessão não existe mais ou foi desativada ou o sessionId mudou
+      if (!sessaoAtual || !sessaoAtual.ativa || sessaoAtual.sessionId !== sessionId) {
+        console.log('Sessão foi encerrada por um administrador!');
+        alert('🔌 Sua sessão foi desconectada por um administrador. Faça login novamente.');
+        logout();
+      }
+    };
+    
+    // Armazena a referência do callback
+    sessaoListenerRef = callback;
+    sessoesRef.child(currentUser).on('value', callback);
+  }
+}
+
+function pararMonitoramentoSessao() {
+  if (currentUser && sessaoListenerRef) {
+    sessoesRef.child(currentUser).off('value', sessaoListenerRef);
+    sessaoListenerRef = null;
+  }
+}
+
+function carregarSessoesAtivas() {
+  sessoesRef.on('value', (snapshot) => {
+    const sessoes = snapshot.val() || {};
+    renderSessoesList(sessoes);
+  });
+}
+
+function renderSessoesList(sessoes) {
+  const container = document.getElementById('sessoes-list');
+  if (!container) return;
+  
+  const usuariosComSessao = Object.entries(sessoes).filter(([_, sessao]) => sessao && sessao.ativa === true);
+  
+  if (usuariosComSessao.length === 0) {
+    container.innerHTML = '<div style="text-align: center; padding: 20px; color: #999;">Nenhum usuário logado no momento</div>';
+    return;
+  }
+  
+  container.innerHTML = usuariosComSessao.map(([username, sessao]) => {
+    const dataInicio = sessao.inicio ? new Date(sessao.inicio).toLocaleString('pt-BR') : 'Desconhecido';
+    const ultimaAtividade = sessao.ultimaAtividade ? new Date(sessao.ultimaAtividade).toLocaleString('pt-BR') : 'Desconhecido';
+    const userData = users[username] || { name: username, role: 'user' };
+    const isCurrentUser = username === currentUser;
+    const podeDesconectar = currentPermissions.manageUsers || currentUser === 'admin';
+    
+    return `
+      <div class="sessao-row" style="border-left: 4px solid ${isCurrentUser ? '#3498db' : '#e67e22'}; background: ${isCurrentUser ? '#e8f4fd' : 'white'}">
+        <div class="sessao-info">
+          <strong>${username}</strong> - ${userData.name || username}
+          <span class="${userData.role === 'admin' ? 'admin-badge' : 'user-badge'}">${userData.role === 'admin' ? 'Admin' : 'User'}</span>
+          <span class="session-active-badge">🔌 ${isCurrentUser ? 'VOCÊ (logado)' : 'Logado'}</span>
+          <div style="font-size: 11px; color: #666; margin-top: 8px;">
+            <div>📅 Login: ${dataInicio}</div>
+            <div>⏱️ Última atividade: ${ultimaAtividade}</div>
+            <div>🖥️ ${sessao.userAgent ? (sessao.userAgent.length > 50 ? sessao.userAgent.substring(0, 50) + '...' : sessao.userAgent) : 'Desconhecido'}</div>
+          </div>
+        </div>
+        <div class="sessao-actions">
+          <button class="btn-disconnect-user" onclick="desconectarUsuario('${username}')" style="background: #e67e22; padding: 6px 12px;">
+            🔌 Desconectar
+          </button>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+// Função global para desconectar (chamada pelo botão)
+window.desconectarUsuario = async (username) => {
+  if (!currentPermissions.manageUsers && currentUser !== 'admin') {
+    alert('❌ Você não tem permissão para desconectar usuários!');
+    return;
+  }
+  
+  if (username === currentUser) {
+    if (confirm(`⚠️ Você está prestes a desconectar sua própria sessão! Isso fará você sair do sistema. Continuar?`)) {
+      await desconectarUsuarioRemoto(username);
+      alert('Sua sessão foi desconectada.');
+      logout();
+    }
+  } else {
+    if (confirm(`Desconectar usuário "${username}"? Ele será forçado a sair do sistema imediatamente.`)) {
+      const sucesso = await desconectarUsuarioRemoto(username);
+      if (sucesso) {
+        alert(`✅ Usuário ${username} foi desconectado com sucesso!`);
+        // Recarrega a lista
+        carregarSessoesAtivas();
+      } else {
+        alert(`❌ Erro ao desconectar ${username}`);
+      }
+    }
+  }
+};
+
+// ========== FUNÇÕES DE INATIVIDADE ==========
+function atualizarAtividade() {
+  if (currentUser && sessionId) {
+    sessoesRef.child(currentUser).update({ ultimaAtividade: Date.now() });
+    resetInactivityTimer();
+  }
+}
+
+function resetInactivityTimer() {
+  if (inactivityTimer) clearTimeout(inactivityTimer);
+  inactivityTimer = setTimeout(() => {
+    if (currentUser) {
+      console.log('Logout por inatividade');
+      alert('⏰ Sessão expirada por inatividade (5 minutos). Faça login novamente.');
+      logout();
+    }
+  }, INACTIVITY_TIMEOUT);
+}
+
+function iniciarMonitoramentoAtividade() {
+  const eventos = ['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart', 'click', 'keydown'];
+  eventos.forEach(evento => {
+    document.addEventListener(evento, atualizarAtividade);
+  });
+  resetInactivityTimer();
+  iniciarMonitoramentoSessao();
+}
+
+function pararMonitoramentoAtividade() {
+  if (inactivityTimer) clearTimeout(inactivityTimer);
+  pararMonitoramentoSessao();
+}
+
+// ========== FUNÇÕES DE SESSÃO LOCAL ==========
+function salvarSessaoLocal(username, sid) {
+  sessionStorage.setItem('currentUser', username);
+  sessionStorage.setItem('sessionId', sid);
+  sessionStorage.setItem('loginTime', Date.now());
+}
+
+function limparSessaoLocal() {
+  sessionStorage.removeItem('currentUser');
+  sessionStorage.removeItem('sessionId');
+  sessionStorage.removeItem('loginTime');
+}
+
+function verificarSessaoLocal() {
+  const savedUser = sessionStorage.getItem('currentUser');
+  const savedSessionId = sessionStorage.getItem('sessionId');
+  const loginTime = sessionStorage.getItem('loginTime');
+  
+  if (savedUser && savedSessionId && loginTime) {
+    if (Date.now() - parseInt(loginTime) > 8 * 60 * 60 * 1000) {
+      limparSessaoLocal();
+      return null;
+    }
+    return { username: savedUser, sessionId: savedSessionId };
+  }
+  return null;
+}
+
+// ========== FUNÇÕES DE LOGIN/LOGOUT ==========
 async function login(username, password) {
-  // Verifica se o usuário existe
   if (!users[username] || users[username].password !== password) {
     return false;
   }
   
-  // Verifica se já existe sessão ativa para este usuário
-  const sessaoAtiva = await verificarSessaoAtiva(username);
-  if (sessaoAtiva) {
-    const errorDiv = document.getElementById('login-error');
-    if (errorDiv) {
-      errorDiv.textContent = '❌ Usuário já está logado em outro dispositivo! Faça logout de lá primeiro.';
-      errorDiv.style.display = 'block';
+  // Verifica se já existe sessão ativa
+  const snapshot = await sessoesRef.child(username).once('value');
+  const sessaoAtiva = snapshot.val();
+  
+  if (sessaoAtiva && sessaoAtiva.ativa === true) {
+    // Se for um administrador tentando logar, oferece a opção de desconectar a sessão anterior
+    const userRole = users[username]?.role;
+    if (sessaoAtiva && sessaoAtiva.ativa === true) {
+      const confirmar = confirm(`⚠️ Usuário ${username} já está logado em outro dispositivo!\n\nDeseja forçar a desconexão da sessão anterior e continuar?`);
+      if (confirmar) {
+        // Força remoção da sessão anterior
+        await sessoesRef.child(username).remove();
+      } else {
+        const errorDiv = document.getElementById('login-error');
+        if (errorDiv) {
+          errorDiv.textContent = '❌ Usuário já está logado em outro dispositivo!';
+          errorDiv.style.display = 'block';
+        }
+        return false;
+      }
+    } else {
+      const errorDiv = document.getElementById('login-error');
+      if (errorDiv) {
+        errorDiv.textContent = '❌ Usuário já está logado em outro dispositivo! Peça para um administrador desconectar sua sessão.';
+        errorDiv.style.display = 'block';
+      }
+      return false;
     }
-    return false;
   }
   
-  // Gera nova sessão
   sessionId = gerarSessionId();
-  
-  // Registra sessão no Firebase
   registrarSessao(username, sessionId);
-  
-  // Salva sessão localmente (sessionStorage - limpa ao fechar aba)
   salvarSessaoLocal(username, sessionId);
-  
   currentUser = username;
   currentPermissions = users[username].permissions || {};
-  
-  // Inicia monitoramento de atividade (timeout por inatividade)
   iniciarMonitoramentoAtividade();
-  
   return true;
 }
 
-// ========== FUNÇÃO DE LOGOUT MODIFICADA ==========
 function logout() {
-  // Para o monitoramento de atividade
   pararMonitoramentoAtividade();
-  
-  // Remove sessão do Firebase
   if (currentUser) {
     removerSessao(currentUser);
   }
-  
-  // Limpa sessão local
   limparSessaoLocal();
-  
   currentUser = null;
   currentPermissions = {};
   sessionId = null;
-  
   showLoginScreen();
 }
 
-// ========== FUNÇÃO PARA VERIFICAR AUTO-LOGIN MODIFICADA ==========
 function checkAutoLogin() {
   const sessaoLocal = verificarSessaoLocal();
   if (sessaoLocal && users[sessaoLocal.username]) {
-    // Verifica se a sessão ainda está ativa no Firebase
-    const sessaoRef = db.ref(`sessoes/${sessaoLocal.username}`);
-    sessaoRef.once('value', (snapshot) => {
+    sessoesRef.child(sessaoLocal.username).once('value', (snapshot) => {
       const sessaoFirebase = snapshot.val();
       if (sessaoFirebase && sessaoFirebase.ativa === true && sessaoFirebase.sessionId === sessaoLocal.sessionId) {
-        // Sessão válida
         currentUser = sessaoLocal.username;
         currentPermissions = users[sessaoLocal.username].permissions || {};
         sessionId = sessaoLocal.sessionId;
         showMainSystem();
         iniciarMonitoramentoAtividade();
-        // Atualiza última atividade
         atualizarAtividade();
       } else {
-        // Sessão inválida, limpa local
         limparSessaoLocal();
         showLoginScreen();
       }
@@ -1321,9 +1424,8 @@ function checkAutoLogin() {
   }
 }
 
+// ========== FUNÇÕES DE UI ==========
 function applyPermissions() {
-  if (!currentPermissions) return;
-  
   const addButton = document.getElementById('add-button');
   const exportButton = document.getElementById('export-button');
   const printSelectedBtn = document.getElementById('print-selected-btn');
@@ -1342,7 +1444,6 @@ function applyPermissions() {
   if (printSelectedBtn) printSelectedBtn.disabled = !currentPermissions.print;
   if (printButton) printButton.disabled = !currentPermissions.print;
   if (btnBaixarPendencia) btnBaixarPendencia.disabled = !currentPermissions.baixarPendencia;
-  
   if (importSection) importSection.style.display = (currentPermissions.importClientes || currentPermissions.importItens) ? 'block' : 'none';
   if (batchActions) batchActions.style.display = (currentPermissions.batchDelete || currentPermissions.deleteAll) ? 'flex' : 'none';
   if (deleteSelectedBtn) deleteSelectedBtn.disabled = !currentPermissions.batchDelete;
@@ -1352,153 +1453,32 @@ function applyPermissions() {
   if (searchClientBtn) searchClientBtn.disabled = !currentPermissions.searchCliente;
 }
 
-function baixarPendencia() {
-  const baixarNumero = document.getElementById('baixar-numero');
-  const baixarMensagem = document.getElementById('baixar-mensagem');
-  const numero = baixarNumero.value.trim();
-  
-  if (!numero) {
-    mostrarMensagem('⚠️ Digite o número da pendência!', '#ff9800');
-    return;
+function showMainSystem() {
+  document.getElementById('login-screen').style.display = 'none';
+  document.getElementById('main-system').style.display = 'block';
+  document.getElementById('current-user').textContent = users[currentUser]?.name || currentUser;
+  document.getElementById('user-role').textContent = users[currentUser]?.role === 'admin' ? '(Admin)' : '(Usuário)';
+  applyPermissions();
+  if (currentPermissions.manageUsers) {
+    loadUsersList();
+    carregarSessoesAtivas();
   }
-  
-  let pendenciaEncontrada = null;
-  let pendenciaId = null;
-  
-  for (const [id, pendencia] of Object.entries(pendencias)) {
-    if (pendencia.numeroPendencia === numero) {
-      pendenciaEncontrada = pendencia;
-      pendenciaId = id;
-      break;
-    }
-  }
-  
-  if (!pendenciaEncontrada) {
-    mostrarMensagem(`❌ Pendência nº ${numero} não encontrada!`, '#e74c3c');
-    baixarNumero.value = '';
-    return;
-  }
-  
-  if (pendenciaEncontrada.status === 'resolvido') {
-    mostrarMensagem(`✅ Pendência nº ${numero} já está resolvida!`, '#f39c12');
-    baixarNumero.value = '';
-    return;
-  }
-  
-  pendenciasRef.child(pendenciaId).update({ 
-    status: 'resolvido',
-    dataBaixa: new Date().toISOString(),
-    baixadoPor: users[currentUser]?.name || currentUser
-  });
-  
-  mostrarMensagem(`✅ Pendência nº ${numero} foi baixada com sucesso!`, '#27ae60');
-  baixarNumero.value = '';
-  
-  setTimeout(() => { 
-    if (baixarMensagem) baixarMensagem.style.display = 'none'; 
-  }, 3000);
+  renderClientesList();
+  renderItemsList();
+  updateItemLists();
+  updateClientList();
 }
 
-function mostrarMensagem(texto, cor) {
-  const baixarMensagem = document.getElementById('baixar-mensagem');
-  baixarMensagem.textContent = texto;
-  baixarMensagem.style.backgroundColor = cor + '20';
-  baixarMensagem.style.color = cor;
-  baixarMensagem.style.display = 'flex';
-  setTimeout(() => { baixarMensagem.style.display = 'none'; }, 3000);
+function showLoginScreen() {
+  pararMonitoramentoAtividade();
+  document.getElementById('login-screen').style.display = 'block';
+  document.getElementById('main-system').style.display = 'none';
+  document.getElementById('login-username').value = '';
+  document.getElementById('login-password').value = '';
+  document.getElementById('login-error').style.display = 'none';
 }
 
-const btnBaixarPendencia = document.getElementById('btn-baixar-pendencia');
-if (btnBaixarPendencia) {
-  btnBaixarPendencia.addEventListener('click', baixarPendencia);
-}
-
-// ========== FUNÇÃO MODIFICADA: preencher dados do cliente (mas permite edição) ==========
-function preencherDadosCliente(codigo) {
-  const cliente = clientesDB[codigo];
-  if (cliente) {
-    // Preenche os campos, mas NÃO bloqueia edição (o usuário pode alterar)
-    const nomeInput = document.getElementById('cliente-nome');
-    const fantasiaInput = document.getElementById('cliente-fantasia');
-    const enderecoInput = document.getElementById('endereco-input');
-    const telefoneInput = document.getElementById('telefone-input');
-    const cidadeInput = document.getElementById('cidade-input');
-    const bairroInput = document.getElementById('bairro-input');
-    
-    // Só preenche se o campo estiver vazio (para não sobrescrever edição manual)
-    if (nomeInput && !nomeInput.value) nomeInput.value = cliente.nome || '';
-    if (fantasiaInput && !fantasiaInput.value) fantasiaInput.value = cliente.fantasia || '';
-    if (enderecoInput && !enderecoInput.value) enderecoInput.value = cliente.endereco || '';
-    if (telefoneInput && !telefoneInput.value) telefoneInput.value = cliente.telefone || '';
-    if (cidadeInput && !cidadeInput.value) cidadeInput.value = cliente.cidade || '';
-    if (bairroInput && !bairroInput.value) bairroInput.value = cliente.bairro || '';
-    return true;
-  }
-  return false;
-}
-
-// ========== FUNÇÃO MODIFICADA: preencher dados do item (mas permite edição) ==========
-function preencherDadosItem(codigo) {
-  const item = itensDB[codigo];
-  if (item) {
-    const descricaoInput = document.getElementById('item-descricao-input');
-    // Só preenche se o campo estiver vazio (para não sobrescrever edição manual)
-    if (descricaoInput && !descricaoInput.value) {
-      descricaoInput.value = item.descricao || '';
-    }
-  }
-}
-
-const clienteCodigoInput = document.getElementById('cliente-codigo');
-if (clienteCodigoInput) {
-  clienteCodigoInput.addEventListener('blur', () => { 
-    const codigo = clienteCodigoInput.value.trim(); 
-    if (codigo) preencherDadosCliente(codigo); 
-  });
-}
-
-const itemCodigoInputElem = document.getElementById('item-codigo-input');
-if (itemCodigoInputElem) {
-  itemCodigoInputElem.addEventListener('blur', () => { 
-    const codigo = itemCodigoInputElem.value.trim(); 
-    if (codigo) preencherDadosItem(codigo); 
-  });
-}
-
-function addItemToPendencia() {
-  const codigo = document.getElementById('item-codigo-input')?.value.trim();
-  const descricao = document.getElementById('item-descricao-input')?.value.trim();
-  const quantidade = document.getElementById('item-quantidade-input')?.value.trim();
-  if (!codigo && !descricao) { alert('Digite o código ou descrição do item!'); return; }
-  if (!quantidade) { alert('Digite a quantidade do item!'); return; }
-  currentPendenciaItens.push({ codigo: codigo || '', descricao: descricao || '', quantidade: quantidade });
-  renderPendenciaItensList();
-  document.getElementById('item-codigo-input').value = '';
-  document.getElementById('item-descricao-input').value = '';
-  document.getElementById('item-quantidade-input').value = '';
-}
-
-function renderPendenciaItensList() {
-  const itensListPendencia = document.getElementById('itens-list-pendencia');
-  if (!itensListPendencia) return;
-  if (currentPendenciaItens.length === 0) { 
-    itensListPendencia.innerHTML = '<div style="color:#999;text-align:center;padding:20px;">Nenhum item adicionado</div>'; 
-    return; 
-  }
-  itensListPendencia.innerHTML = currentPendenciaItens.map((item, index) => `
-    <div class="item-pendencia-display">
-      <span><strong>${item.codigo || '---'}</strong> - ${item.descricao || '---'}</span>
-      <span>Qtd: ${item.quantidade}</span>
-      <button type="button" class="btn-remove-item" onclick="removePendenciaItem(${index})" style="background:#e74c3c;color:white;border:none;padding:2px 8px;border-radius:3px;cursor:pointer;">Remover</button>
-    </div>
-  `).join('');
-}
-
-window.removePendenciaItem = (index) => { 
-  currentPendenciaItens.splice(index, 1); 
-  renderPendenciaItensList(); 
-};
-
+// ========== FUNÇÕES DE CARREGAMENTO ==========
 function loadClientesFromFirebase() {
   clientesRef.on('value', (snapshot) => {
     clientesDB = snapshot.val() || {};
@@ -1516,27 +1496,62 @@ function loadItensFromFirebase() {
   });
 }
 
-function updateItemLists() {
-  const datalist = document.getElementById('item-list-modal');
-  if (datalist) {
-    datalist.innerHTML = '';
-    Object.keys(itensDB).forEach(codigo => {
-      const option = document.createElement('option');
-      option.value = codigo;
-      option.textContent = `${codigo} - ${itensDB[codigo].descricao || ''}`;
-      datalist.appendChild(option);
-    });
-  }
+function loadPendenciasFromFirebase() {
+  pendenciasRef.on('value', (snapshot) => {
+    pendencias = snapshot.val() || {};
+    calcularProximoNumero();
+    updateTable();
+  });
 }
 
+function loadUsersFromFirebase() {
+  usersRef.on('value', (snapshot) => {
+    const firebaseUsers = snapshot.val();
+    if (firebaseUsers) {
+      users = { ...usuariosIniciais, ...firebaseUsers };
+    } else {
+      users = JSON.parse(JSON.stringify(usuariosIniciais));
+      usersRef.set(users);
+    }
+    if (currentUser && currentPermissions.manageUsers) {
+      loadUsersList();
+      carregarSessoesAtivas();
+    }
+  });
+}
+
+function saveUsersToFirebase() { 
+  usersRef.set(users); 
+}
+
+function loadUltimoNumero() {
+  configRef.child('ultimoNumeroPendencia').on('value', (snapshot) => {
+    const ultimo = snapshot.val();
+    if (ultimo !== null && ultimo > 0) {
+      nextPendenciaNumero = ultimo + 1;
+    } else {
+      calcularProximoNumero();
+    }
+  });
+}
+
+function calcularProximoNumero() {
+  const numeros = Object.values(pendencias).map(p => parseInt(p.numeroPendencia)).filter(n => !isNaN(n));
+  nextPendenciaNumero = numeros.length ? Math.max(...numeros) + 1 : 1;
+}
+
+function getNextNumeroPendencia() { return nextPendenciaNumero; }
+
+// ========== FUNÇÕES DE RENDERIZAÇÃO ==========
 function renderClientesList() {
   const container = document.getElementById('clientes-list');
   if (!container) return;
   const searchTerm = document.getElementById('search-cliente-admin')?.value.toLowerCase() || '';
-  const filtered = Object.entries(clientesDB).filter(([codigo, item]) => codigo.toLowerCase().includes(searchTerm) || (item.nome || '').toLowerCase().includes(searchTerm));
+  const filtered = Object.entries(clientesDB).filter(([codigo, item]) => 
+    codigo.toLowerCase().includes(searchTerm) || (item.nome || '').toLowerCase().includes(searchTerm));
   container.innerHTML = filtered.map(([codigo, item]) => `
-    <div class="cliente-row" data-codigo="${codigo}">
-      <input type="checkbox" class="cliente-checkbox" data-codigo="${codigo}" style="width:20px; margin:0;">
+    <div class="cliente-row">
+      <input type="checkbox" class="cliente-checkbox" data-codigo="${codigo}" style="width:20px;">
       <div class="cliente-info"><strong>${codigo}</strong> - ${item.nome || ''}<br><small>${item.fantasia || ''} | ${item.telefone || ''}</small></div>
       <div class="cliente-actions"><button class="btn-delete" onclick="deleteCliente('${codigo}')"> Excluir</button></div>
     </div>
@@ -1547,34 +1562,51 @@ function renderItemsList() {
   const container = document.getElementById('items-list');
   if (!container) return;
   const searchTerm = document.getElementById('search-item-admin')?.value.toLowerCase() || '';
-  const filtered = Object.entries(itensDB).filter(([codigo, item]) => codigo.toLowerCase().includes(searchTerm) || (item.descricao || '').toLowerCase().includes(searchTerm));
+  const filtered = Object.entries(itensDB).filter(([codigo, item]) => 
+    codigo.toLowerCase().includes(searchTerm) || (item.descricao || '').toLowerCase().includes(searchTerm));
   container.innerHTML = filtered.map(([codigo, item]) => `
-    <div class="item-row" data-codigo="${codigo}">
-      <input type="checkbox" class="item-checkbox" data-codigo="${codigo}" style="width:20px; margin:0;">
+    <div class="item-row">
+      <input type="checkbox" class="item-checkbox" data-codigo="${codigo}" style="width:20px;">
       <div class="item-info"><strong>${codigo}</strong> - ${item.descricao || ''}</div>
       <div class="item-actions"><button class="btn-delete" onclick="deleteItem('${codigo}')"> Excluir</button></div>
     </div>
   `).join('');
 }
 
-window.deleteCliente = (codigo) => {
-  if (confirm(`Excluir cliente ${codigo}?`)) { 
-    delete clientesDB[codigo]; 
-    clientesRef.set(clientesDB); 
-    renderClientesList(); 
-    updateClientList(); 
-    updateClientCounter(); 
-  }
-};
-
-window.deleteItem = (codigo) => {
-  if (confirm(`Excluir item ${codigo}?`)) { 
-    delete itensDB[codigo]; 
-    itensRef.set(itensDB); 
-    renderItemsList(); 
-    updateItemLists(); 
-  }
-};
+function loadUsersList() {
+  const container = document.getElementById('users-list');
+  if (!container) return;
+  const permissoesLista = [
+    { id: 'create', label: '📝 Criar Pendência' }, { id: 'edit', label: '✏️ Editar Pendência' }, 
+    { id: 'delete', label: '🗑️ Excluir Pendência' }, { id: 'changeStatus', label: '🔄 Alterar Status' }, 
+    { id: 'export', label: '📎 Exportar Dados' }, { id: 'print', label: '🖨️ Imprimir' },
+    { id: 'importClientes', label: '📥 Importar Clientes' }, { id: 'importItens', label: '📦 Importar Itens' }, 
+    { id: 'batchDelete', label: '📦 Excluir Lote Pendências' }, { id: 'deleteAll', label: '⚠️ Excluir Todas Pendências' }, 
+    { id: 'manageUsers', label: '👥 Gerenciar Usuários' }, { id: 'baixarPendencia', label: ' Baixar Pendência' }
+  ];
+  container.innerHTML = '';
+  Object.entries(users).forEach(([username, userData]) => {
+    if (username === currentUser) return;
+    const perms = userData.permissions || {};
+    const userItem = document.createElement('div');
+    userItem.className = 'user-item';
+    userItem.innerHTML = `
+      <div><strong>${username}</strong> - ${userData.name || username}<span class="${userData.role === 'admin' ? 'admin-badge' : 'user-badge'}">${userData.role === 'admin' ? 'Admin' : 'User'}</span></div>
+      <div class="user-permissions">${permissoesLista.map(p => `<label class="perm-checkbox"><input type="checkbox" class="perm-${p.id}" ${perms[p.id] ? 'checked' : ''}> ${p.label}</label>`).join('')}</div>
+      <div class="user-actions"><button class="btn-reset-password" onclick="resetUserPassword('${username}')">🔑 Resetar Senha</button><button class="btn-delete-user" onclick="deleteUser('${username}')"> Excluir Usuário</button></div>
+    `;
+    permissoesLista.forEach(p => {
+      const cb = userItem.querySelector(`.perm-${p.id}`);
+      if (cb) cb.addEventListener('change', () => {
+        users[username].permissions = users[username].permissions || {};
+        users[username].permissions[p.id] = cb.checked;
+        saveUsersToFirebase();
+        if (username === currentUser) { currentPermissions = users[username].permissions; applyPermissions(); }
+      });
+    });
+    container.appendChild(userItem);
+  });
+}
 
 function updateClientList() {
   const datalist = document.getElementById('client-list');
@@ -1599,42 +1631,131 @@ function updateClientList() {
   }
 }
 
+function updateItemLists() {
+  const datalist = document.getElementById('item-list-modal');
+  if (datalist) {
+    datalist.innerHTML = '';
+    Object.keys(itensDB).forEach(codigo => {
+      const option = document.createElement('option');
+      option.value = codigo;
+      option.textContent = `${codigo} - ${itensDB[codigo].descricao || ''}`;
+      datalist.appendChild(option);
+    });
+  }
+}
+
 function updateClientCounter() {
   const total = Object.keys(clientesDB).length;
-  const clientCounter = document.getElementById('client-counter');
-  if (clientCounter) clientCounter.innerHTML = `📊 ${total} clientes`;
+  const counter = document.getElementById('client-counter');
+  if (counter) counter.innerHTML = `📊 ${total} clientes`;
 }
 
-function loadPendenciasFromFirebase() {
-  pendenciasRef.on('value', (snapshot) => {
-    pendencias = snapshot.val() || {};
-    calcularProximoNumero();
-    updateTable();
-  });
+window.deleteCliente = (codigo) => {
+  if (confirm(`Excluir cliente ${codigo}?`)) {
+    delete clientesDB[codigo];
+    clientesRef.set(clientesDB);
+    renderClientesList();
+    updateClientList();
+    updateClientCounter();
+  }
+};
+
+window.deleteItem = (codigo) => {
+  if (confirm(`Excluir item ${codigo}?`)) {
+    delete itensDB[codigo];
+    itensRef.set(itensDB);
+    renderItemsList();
+    updateItemLists();
+  }
+};
+
+window.resetUserPassword = function(username) {
+  const newPass = prompt(`Nova senha para ${username}:`);
+  if (newPass && newPass.length >= 4) { 
+    users[username].password = newPass; 
+    saveUsersToFirebase(); 
+    alert('Senha alterada!'); 
+  } else if (newPass) {
+    alert('A senha deve ter pelo menos 4 caracteres!');
+  }
+};
+
+window.deleteUser = function(username) {
+  if (confirm(`Excluir usuário ${username}?`)) { 
+    delete users[username]; 
+    saveUsersToFirebase(); 
+    loadUsersList(); 
+  }
+};
+
+// ========== FUNÇÕES DE PREENCHIMENTO EDITÁVEL ==========
+function preencherDadosCliente(codigo) {
+  const cliente = clientesDB[codigo];
+  if (cliente) {
+    const nomeInput = document.getElementById('cliente-nome');
+    const fantasiaInput = document.getElementById('cliente-fantasia');
+    const enderecoInput = document.getElementById('endereco-input');
+    const telefoneInput = document.getElementById('telefone-input');
+    const cidadeInput = document.getElementById('cidade-input');
+    const bairroInput = document.getElementById('bairro-input');
+    
+    if (nomeInput && !nomeInput.value) nomeInput.value = cliente.nome || '';
+    if (fantasiaInput && !fantasiaInput.value) fantasiaInput.value = cliente.fantasia || '';
+    if (enderecoInput && !enderecoInput.value) enderecoInput.value = cliente.endereco || '';
+    if (telefoneInput && !telefoneInput.value) telefoneInput.value = cliente.telefone || '';
+    if (cidadeInput && !cidadeInput.value) cidadeInput.value = cliente.cidade || '';
+    if (bairroInput && !bairroInput.value) bairroInput.value = cliente.bairro || '';
+    return true;
+  }
+  return false;
 }
 
-const searchClientBtnElem = document.getElementById('search-client');
-if (searchClientBtnElem) {
-  searchClientBtnElem.addEventListener('click', () => {
-    if (!currentPermissions.searchCliente) { alert('Sem permissão!'); return; }
-    const codigo = document.getElementById('client-code').value.trim();
-    if (codigo && clientesDB[codigo]) {
-      const cliente = clientesDB[codigo];
-      const clientDetails = document.getElementById('client-details');
-      const clientInfoDiv = document.getElementById('client-info');
-      if (clientDetails) {
-        clientDetails.innerHTML = `<div class="info-item"><span class="info-label">Código:</span> ${cliente.codigo || codigo}</div>
-          <div class="info-item"><span class="info-label">Nome:</span> ${cliente.nome || '-'}</div>
-          <div class="info-item"><span class="info-label">Fantasia:</span> ${cliente.fantasia || '-'}</div>
-          <div class="info-item"><span class="info-label">Endereço:</span> ${cliente.endereco || '-'}</div>
-          <div class="info-item"><span class="info-label">Cidade:</span> ${cliente.cidade || '-'}</div>
-          <div class="info-item"><span class="info-label">Bairro:</span> ${cliente.bairro || '-'}</div>`;
-        if (clientInfoDiv) clientInfoDiv.style.display = 'block';
-      }
-    } else { alert('Cliente não encontrado!'); }
-  });
+function preencherDadosItem(codigo) {
+  const item = itensDB[codigo];
+  if (item) {
+    const descricaoInput = document.getElementById('item-descricao-input');
+    if (descricaoInput && !descricaoInput.value) {
+      descricaoInput.value = item.descricao || '';
+    }
+  }
 }
 
+// ========== FUNÇÕES DE ITENS DA PENDÊNCIA ==========
+function addItemToPendencia() {
+  const codigo = document.getElementById('item-codigo-input')?.value.trim();
+  const descricao = document.getElementById('item-descricao-input')?.value.trim();
+  const quantidade = document.getElementById('item-quantidade-input')?.value.trim();
+  if (!codigo && !descricao) { alert('Digite o código ou descrição do item!'); return; }
+  if (!quantidade) { alert('Digite a quantidade do item!'); return; }
+  currentPendenciaItens.push({ codigo: codigo || '', descricao: descricao || '', quantidade: quantidade });
+  renderPendenciaItensList();
+  document.getElementById('item-codigo-input').value = '';
+  document.getElementById('item-descricao-input').value = '';
+  document.getElementById('item-quantidade-input').value = '';
+}
+
+function renderPendenciaItensList() {
+  const container = document.getElementById('itens-list-pendencia');
+  if (!container) return;
+  if (currentPendenciaItens.length === 0) {
+    container.innerHTML = '<div style="color:#999;text-align:center;padding:20px;">Nenhum item adicionado</div>';
+    return;
+  }
+  container.innerHTML = currentPendenciaItens.map((item, index) => `
+    <div class="item-pendencia-display">
+      <span><strong>${item.codigo || '---'}</strong> - ${item.descricao || '---'}</span>
+      <span>Qtd: ${item.quantidade}</span>
+      <button type="button" onclick="removePendenciaItem(${index})" style="background:#e74c3c;color:white;border:none;padding:2px 8px;border-radius:3px;cursor:pointer;">Remover</button>
+    </div>
+  `).join('');
+}
+
+window.removePendenciaItem = (index) => { 
+  currentPendenciaItens.splice(index, 1); 
+  renderPendenciaItensList(); 
+};
+
+// ========== FUNÇÕES DE IMPORTAÇÃO ==========
 function importarClientes(file) {
   const reader = new FileReader();
   reader.onload = function(e) {
@@ -1652,7 +1773,15 @@ function importarClientes(file) {
       if (!codigo) codigo = row[0];
       if (codigo && String(codigo).trim()) {
         const codigoStr = String(codigo).trim();
-        novosClientes[codigoStr] = { codigo: codigoStr, nome: row[1] || '', fantasia: row[2] || '', endereco: row[5] || '', telefone: row[6] || '', cidade: row[4] || '', bairro: row[7] || '' };
+        novosClientes[codigoStr] = { 
+          codigo: codigoStr, 
+          nome: row[1] || '', 
+          fantasia: row[2] || '', 
+          endereco: row[5] || '', 
+          telefone: row[6] || '', 
+          cidade: row[4] || '', 
+          bairro: row[7] || '' 
+        };
         importados++;
       }
     }
@@ -1683,7 +1812,12 @@ function importarItens(file) {
       const codigo = row[headers.indexOf('codigo')] || row[headers.indexOf('código')] || row[0];
       if (codigo && String(codigo).trim()) {
         const codigoStr = String(codigo).trim();
-        novosItens[codigoStr] = { codigo: codigoStr, descricao: row[headers.indexOf('descricao')] || row[headers.indexOf('descrição')] || '', unidade: row[headers.indexOf('unidade')] || '', valor: row[headers.indexOf('valor')] || '' };
+        novosItens[codigoStr] = { 
+          codigo: codigoStr, 
+          descricao: row[headers.indexOf('descricao')] || row[headers.indexOf('descrição')] || '', 
+          unidade: row[headers.indexOf('unidade')] || '', 
+          valor: row[headers.indexOf('valor')] || '' 
+        };
         importados++;
       }
     }
@@ -1693,441 +1827,7 @@ function importarItens(file) {
   reader.readAsArrayBuffer(file);
 }
 
-const importClientesBtnElem = document.getElementById('import-clientes-btn');
-if (importClientesBtnElem) {
-  importClientesBtnElem.addEventListener('click', () => {
-    if (!currentPermissions.importClientes) { alert('Sem permissão!'); return; }
-    const file = document.getElementById('client-file').files[0];
-    if (!file) { alert('Selecione um arquivo de clientes!'); return; }
-    importarClientes(file);
-  });
-}
-
-const importItensBtnElem = document.getElementById('import-itens-btn');
-if (importItensBtnElem) {
-  importItensBtnElem.addEventListener('click', () => {
-    if (!currentPermissions.importItens) { alert('Sem permissão!'); return; }
-    const file = document.getElementById('item-file').files[0];
-    if (!file) { alert('Selecione um arquivo de itens!'); return; }
-    importarItens(file);
-  });
-}
-
-function loadUsersFromFirebase() {
-  usersRef.on('value', (snapshot) => {
-    const firebaseUsers = snapshot.val();
-    if (firebaseUsers) {
-      users = { ...usuariosIniciais, ...firebaseUsers };
-    } else {
-      users = JSON.parse(JSON.stringify(usuariosIniciais));
-      usersRef.set(users);
-    }
-    if (currentUser && (currentUser === 'admin' || users[currentUser]?.role === 'admin')) {
-      loadUsersList();
-    }
-  });
-}
-
-function saveUsersToFirebase() { 
-  usersRef.set(users); 
-}
-
-function loadUltimoNumero() {
-  configRef.child('ultimoNumeroPendencia').on('value', (snapshot) => {
-    const ultimo = snapshot.val();
-    if (ultimo !== null && ultimo > 0) {
-      nextPendenciaNumero = ultimo + 1;
-    } else {
-      calcularProximoNumero();
-    }
-  });
-}
-
-function calcularProximoNumero() {
-  const numeros = Object.values(pendencias)
-    .map(p => parseInt(p.numeroPendencia))
-    .filter(n => !isNaN(n));
-  
-  if (numeros.length === 0) {
-    nextPendenciaNumero = 1;
-  } else {
-    nextPendenciaNumero = Math.max(...numeros) + 1;
-  }
-}
-
-function getNextNumeroPendencia() {
-  return nextPendenciaNumero;
-}
-
-function loadUsersList() {
-  const usersListDiv = document.getElementById('users-list');
-  if (!usersListDiv) return;
-  usersListDiv.innerHTML = '';
-  const permissoesLista = [
-    { id: 'create', label: '📝 Criar Pendência' }, { id: 'edit', label: '✏️ Editar Pendência' }, { id: 'delete', label: '🗑️ Excluir Pendência' },
-    { id: 'changeStatus', label: '🔄 Alterar Status' }, { id: 'export', label: '📎 Exportar Dados' }, { id: 'print', label: '🖨️ Imprimir' },
-    { id: 'importClientes', label: '📥 Importar Clientes' }, { id: 'importItens', label: '📦 Importar Itens' }, { id: 'batchDelete', label: '📦 Excluir Lote Pendências' },
-    { id: 'deleteAll', label: '⚠️ Excluir Todas Pendências' }, { id: 'manageUsers', label: '👥 Gerenciar Usuários' }, { id: 'viewClientes', label: '👁️ Visualizar Clientes' },
-    { id: 'viewPendencias', label: '👁️ Visualizar Pendências' }, { id: 'searchCliente', label: '🔍 Buscar Cliente' }, { id: 'showSearchCliente', label: '🔎 Mostrar Busca de Cliente' },
-    { id: 'baixarPendencia', label: ' Baixar Pendência' }, { id: 'deleteSelectedClientes', label: '🗑️ Excluir Clientes Selecionados' },
-    { id: 'deleteAllClientes', label: '⚠️ Excluir Todos Clientes' }, { id: 'deleteSelectedItens', label: '🗑️ Excluir Itens Selecionados' },
-    { id: 'deleteAllItens', label: '⚠️ Excluir Todos Itens' }
-  ];
-  Object.entries(users).forEach(([username, userData]) => {
-    if (username === currentUser) return;
-    const perms = userData.permissions || {};
-    const userItem = document.createElement('div');
-    userItem.className = 'user-item';
-    userItem.innerHTML = `
-      <div><strong>${username}</strong> - ${userData.name || username}<span class="${userData.role === 'admin' ? 'admin-badge' : 'user-badge'}">${userData.role === 'admin' ? 'Admin' : 'User'}</span></div>
-      <div class="user-permissions">${permissoesLista.map(p => `<label class="perm-checkbox"><input type="checkbox" class="perm-${p.id}" ${perms[p.id] ? 'checked' : ''}> ${p.label}</label>`).join('')}</div>
-      <div class="user-actions"><button class="btn-reset-password" onclick="resetUserPassword('${username}')">🔑 Resetar Senha</button><button class="btn-delete-user" onclick="deleteUser('${username}')"> Excluir Usuário</button></div>
-    `;
-    permissoesLista.forEach(p => {
-      const cb = userItem.querySelector(`.perm-${p.id}`);
-      if (cb) cb.addEventListener('change', () => {
-        users[username].permissions = users[username].permissions || {};
-        users[username].permissions[p.id] = cb.checked;
-        saveUsersToFirebase();
-        if (username === currentUser) { currentPermissions = users[username].permissions; applyPermissions(); }
-      });
-    });
-    usersListDiv.appendChild(userItem);
-  });
-}
-
-window.resetUserPassword = function(username) { 
-  const newPass = prompt(`Nova senha para ${username}:`); 
-  if (newPass) { 
-    users[username].password = newPass; 
-    saveUsersToFirebase(); 
-    alert('Senha alterada!'); 
-  } 
-};
-
-window.deleteUser = function(username) { 
-  if (confirm(`Excluir usuário ${username}?`)) { 
-    delete users[username]; 
-    saveUsersToFirebase(); 
-    loadUsersList(); 
-  } 
-};
-
-document.getElementById('create-user-form')?.addEventListener('submit', (e) => {
-  e.preventDefault();
-  const newUser = document.getElementById('new-username').value.trim();
-  const newPass = document.getElementById('new-password').value;
-  const newRole = document.getElementById('new-role').value;
-  if (users[newUser]) { alert('Usuário já existe!'); return; }
-  users[newUser] = { password: newPass, name: newUser, role: newRole, permissions: { create: true, edit: false, delete: false, changeStatus: true, export: false, print: false, importClientes: false, importItens: false, batchDelete: false, deleteAll: false, manageUsers: false, viewClientes: true, viewPendencias: true, searchCliente: true, showSearchCliente: true, baixarPendencia: true, deleteSelectedClientes: false, deleteAllClientes: false, deleteSelectedItens: false, deleteAllItens: false } };
-  saveUsersToFirebase();
-  loadUsersList();
-  alert('Usuário criado!');
-});
-
-document.querySelectorAll('.tab-btn').forEach(btn => {
-  btn.addEventListener('click', () => {
-    const tabId = btn.dataset.tab;
-    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
-    document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
-    document.getElementById(tabId).classList.add('active');
-    if (tabId === 'clientes-tab') renderClientesList();
-    if (tabId === 'itens-tab') renderItemsList();
-  });
-});
-
-document.getElementById('search-cliente-admin')?.addEventListener('input', () => renderClientesList());
-document.getElementById('search-item-admin')?.addEventListener('input', () => renderItemsList());
-
-function updateSelectedCount() {
-  const selectedCountSpan = document.getElementById('selected-count');
-  const headerCheckbox = document.getElementById('header-checkbox');
-  if (selectedCountSpan) selectedCountSpan.textContent = `${selectedItems.size} selecionada(s)`;
-  if (headerCheckbox) {
-    const allCbs = document.querySelectorAll('.row-checkbox');
-    const allChecked = allCbs.length > 0 && Array.from(allCbs).every(cb => cb.checked);
-    headerCheckbox.checked = allChecked;
-    headerCheckbox.indeterminate = !allChecked && Array.from(allCbs).some(cb => cb.checked);
-  }
-}
-
-function selectAllPendencias() {
-  if (!currentPermissions.batchDelete) { alert('Sem permissão!'); return; }
-  document.querySelectorAll('.row-checkbox').forEach(cb => { cb.checked = true; selectedItems.add(cb.dataset.id); });
-  updateSelectedCount();
-}
-function deselectAllPendencias() { document.querySelectorAll('.row-checkbox').forEach(cb => { cb.checked = false; selectedItems.delete(cb.dataset.id); }); updateSelectedCount(); }
-function deleteSelectedPendencias() {
-  if (!currentPermissions.batchDelete) { alert('Sem permissão!'); return; }
-  if (selectedItems.size === 0) { alert('Nenhuma selecionada!'); return; }
-  if (confirm(`Excluir ${selectedItems.size} pendência(s)?`)) { selectedItems.forEach(id => pendenciasRef.child(id).remove()); selectedItems.clear(); updateSelectedCount(); }
-}
-function deleteAllPendencias() {
-  if (!currentPermissions.deleteAll) { alert('Sem permissão!'); return; }
-  const total = Object.keys(pendencias).length;
-  if (total === 0) { alert('Nenhuma pendência!'); return; }
-  if (confirm(`⚠️ EXCLUIR TODAS as ${total} pendências?`)) {
-    if (prompt('Digite "EXCLUIR" para confirmar:') === 'EXCLUIR') { pendenciasRef.set(null); selectedItems.clear(); updateSelectedCount(); alert('Todas excluídas!'); }
-  }
-}
-
-function showMainSystem() {
-  const loginScreen = document.getElementById('login-screen');
-  const mainSystem = document.getElementById('main-system');
-  const currentUserSpan = document.getElementById('current-user');
-  const userRoleSpan = document.getElementById('user-role');
-  
-  if (loginScreen) loginScreen.style.display = 'none';
-  if (mainSystem) mainSystem.style.display = 'block';
-  if (currentUserSpan) currentUserSpan.textContent = users[currentUser]?.name || currentUser;
-  if (userRoleSpan) userRoleSpan.textContent = (users[currentUser]?.role === 'admin') ? '(Admin)' : '(Usuário)';
-  applyPermissions();
-  if (currentPermissions.manageUsers) loadUsersList();
-  renderClientesList();
-  renderItemsList();
-  updateItemLists();
-}
-
-function showLoginScreen() {
-  const loginScreen = document.getElementById('login-screen');
-  const mainSystem = document.getElementById('main-system');
-  
-  // Para monitoramento se estiver ativo
-  pararMonitoramentoAtividade();
-  
-  // Limpa o timer de inatividade
-  if (inactivityTimer) {
-    clearTimeout(inactivityTimer);
-  }
-  
-  if (loginScreen) loginScreen.style.display = 'block';
-  if (mainSystem) mainSystem.style.display = 'none';
-  
-  // Limpa campos de login
-  const usernameInput = document.getElementById('login-username');
-  const passwordInput = document.getElementById('login-password');
-  if (usernameInput) usernameInput.value = '';
-  if (passwordInput) passwordInput.value = '';
-  
-  const errorDiv = document.getElementById('login-error');
-  if (errorDiv) errorDiv.style.display = 'none';
-}
-
-function imprimirDocumento(htmlContent) {
-  const printWindow = window.open('', '_blank', 'width=800,height=600,toolbar=yes,scrollbars=yes,menubar=yes');
-  
-  if (printWindow) {
-    printWindow.document.write(htmlContent);
-    printWindow.document.close();
-    printWindow.focus();
-    printWindow.print();
-  } else {
-    alert('Por favor, permita pop-ups para este site para imprimir o documento.');
-  }
-}
-
-function formatDateTime(dateString) {
-  if (!dateString) return '-';
-  const date = new Date(dateString);
-  return date.toLocaleString('pt-BR', {
-    day: '2-digit',
-    month: '2-digit',
-    year: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit'
-  });
-}
-
-function gerarHTMLImpressao(pendenciaData, isMultiple = false) {
-  function renderPendencia(p) {
-    const enderecoCompleto = `${p.endereco || ''}`.trim();
-    const nomeFantasia = p.fantasia || '';
-    const nomeCliente = p.cliente || '';
-    
-    let nomeFantasiaHTML = '';
-    if (nomeFantasia && nomeFantasia !== nomeCliente) {
-      nomeFantasiaHTML = `<div style="margin-bottom:5px;"><strong style="display:inline-block; width:100px;">FANTASIA:</strong> ${nomeFantasia}</div>`;
-    } else if (nomeFantasia && !nomeCliente) {
-      nomeFantasiaHTML = `<div style="margin-bottom:5px;"><strong style="display:inline-block; width:100px;">FANTASIA:</strong> ${nomeFantasia}</div>`;
-    }
-    
-    let itensHTML = '';
-    if (p.itens && p.itens.length > 0) {
-      itensHTML = p.itens.map(item => `
-        <tr>
-          <td style="border: 1px solid #000; padding: 8px;">${item.codigo || '-'}</td>
-          <td style="border: 1px solid #000; padding: 8px;">${item.descricao || '-'}</td>
-          <td style="border: 1px solid #000; padding: 8px;">${item.quantidade || '0'}</td>
-        </tr>
-      `).join('');
-    } else {
-      itensHTML = '<tr><td colspan="3" style="text-align:center; border:1px solid #000; padding:8px;">Nenhum item cadastrado<\/td><\/tr>';
-    }
-    
-    return `
-      <div class="print-document" style="margin-bottom: 30px; page-break-after: always; border: 1px solid #ddd; padding: 20px; margin-bottom: 20px; background: white; font-family: 'Courier New', Courier, monospace;">
-        <div style="text-align:center; font-size:16pt; font-weight:bold; color:#1a472a; margin-bottom:10px; padding-bottom:5px; border-bottom:2px solid #1a472a;">DISLAM DISTRIBUIDORA</div>
-        <div style="text-align:center; margin-bottom:15px;">
-          <h1 style="font-size:20pt; font-weight:bold; text-transform:uppercase;">PENDÊNCIA Nº ${p.numeroPendencia || 'N/A'}</h1>
-          <div style="display:flex; justify-content:center; margin-top:5px; font-weight:bold; border-bottom:1px solid #000; padding-bottom:5px;">
-            <span style="font-size:12pt;">Data da Falta: ${p.dataFalta ? new Date(p.dataFalta).toLocaleDateString('pt-BR') : ''}</span>
-          </div>
-        </div>
-        
-        <div style="margin-bottom:15px; border:1px solid #000; padding:10px;">
-          <div style="margin-bottom:5px;"><strong style="display:inline-block; width:100px;">CÓDIGO:</strong> ${p.clienteCodigo || ''}</div>
-          <div style="margin-bottom:5px;"><strong style="display:inline-block; width:100px;">CLIENTE:</strong> ${nomeCliente || ''}</div>
-          ${nomeFantasiaHTML}
-          <div style="margin-bottom:5px;"><strong style="display:inline-block; width:100px;">ENDEREÇO:</strong> ${enderecoCompleto || '_________________________'}</div>
-          <div style="margin-bottom:5px;"><strong style="display:inline-block; width:100px;">BAIRRO:</strong> ${p.bairro || '_________________'}<strong style="display:inline-block; width:80px; margin-left:20px;">CIDADE:</strong> ${p.cidade || '_______________'}</div>
-        </div>
-        
-        <div style="margin:15px 0; text-align:center;">
-          <div style="font-size:22pt; font-weight:bold; color:#c0392b; text-transform:uppercase; letter-spacing:4px; padding:8px; border:2px solid #c0392b; display:inline-block;">ATENÇÃO!!</div>
-        </div>
-        
-        <div style="margin:15px 0; text-align:center;">
-          <div style="font-size:16pt; font-weight:bold; color:#1a472a; text-transform:uppercase; padding:10px; background-color:#f0f0f0; border:1px solid #1a472a; display:inline-block;">${p.tipoServico || 'SOMENTE ENTREGAR'}</div>
-        </div>
-        
-        <table style="width:100%; border-collapse:collapse; margin:15px 0;">
-          <thead>
-            <tr style="background-color:#f0f0f0;">
-              <th style="border:1px solid #000; padding:8px; text-align:left;">CÓDIGO</th>
-              <th style="border:1px solid #000; padding:8px; text-align:left;">DESCRIÇÃO DO PRODUTO</th>
-              <th style="border:1px solid #000; padding:8px; text-align:left;">QUANTIDADE</th>
-              
-          </thead>
-          <tbody>
-            ${itensHTML}
-          </tbody>
-        <\/table>
-        
-        <div style="margin:15px 0; border:1px solid #000; padding:15px; min-height:100px;">
-          <div style="font-weight:bold; margin-bottom:10px; font-size:12pt;">OBSERVAÇÃO:</div>
-          <div style="line-height:1.5; min-height:80px;">${p.observacao || '_________________________________________________'}</div>
-        </div>
-        
-        <div style="margin-top:50px; display:flex; justify-content:space-between;">
-          <div style="width:45%; text-align:center;">
-            <div style="margin-top:40px; border-top:1px solid #000; width:100%;"></div>
-            <p style="margin-top:5px;">Assinatura do Cliente:</p>
-          </div>
-          <div style="width:45%; text-align:center;">
-            <div style="margin-top:40px; border-top:1px solid #000; width:100%;"></div>
-            <p style="margin-top:5px;">Motorista Responsável:</p>
-          </div>
-        </div>
-      </div>
-    `;
-  }
-  
-  let conteudo = `<!DOCTYPE html>
-  <html>
-  <head>
-    <meta charset="UTF-8">
-    <title>DISLAM - Pendência</title>
-    <style>
-      * {
-        margin: 0;
-        padding: 0;
-        box-sizing: border-box;
-      }
-      body {
-        font-family: 'Courier New', Courier, monospace;
-        margin: 0;
-        padding: 20px;
-        font-size: 11pt;
-        background: white;
-      }
-      @media print {
-        body {
-          margin: 0;
-          padding: 0;
-        }
-        .print-document {
-          page-break-after: always;
-        }
-      }
-    </style>
-  </head>
-  <body>`;
-  
-  if (isMultiple) {
-    pendenciaData.forEach((p) => {
-      conteudo += renderPendencia(p);
-    });
-  } else {
-    conteudo += renderPendencia(pendenciaData);
-  }
-  
-  conteudo += `</body></html>`;
-  return conteudo;
-}
-
-function imprimirPendenciaAtual() {
-  if (!currentPermissions.print) { 
-    alert('Sem permissão para imprimir!'); 
-    return; 
-  }
-  
-  const pendenciaData = {
-    clienteCodigo: document.getElementById('cliente-codigo')?.value.trim() || '',
-    cliente: document.getElementById('cliente-nome')?.value.trim() || '',
-    fantasia: document.getElementById('cliente-fantasia')?.value.trim() || '',
-    endereco: document.getElementById('endereco-input')?.value.trim() || '',
-    cidade: document.getElementById('cidade-input')?.value.trim() || '',
-    bairro: document.getElementById('bairro-input')?.value.trim() || '',
-    dataFalta: document.getElementById('data-falta-input')?.value || '',
-    numeroPendencia: document.getElementById('numero-pendencia-input')?.value.trim() || '',
-    tipoServico: document.getElementById('tipo-servico-input')?.value || 'SOMENTE ENTREGAR',
-    observacao: document.getElementById('observacao-input')?.value.trim() || '',
-    itens: currentPendenciaItens
-  };
-  
-  const html = gerarHTMLImpressao(pendenciaData, false);
-  imprimirDocumento(html);
-}
-
-function imprimirPendenciasSelecionadas() {
-  if (!currentPermissions.print) { 
-    alert('Sem permissão para imprimir!'); 
-    return; 
-  }
-  if (selectedItems.size === 0) { 
-    alert('Selecione pelo menos uma pendência para imprimir!'); 
-    return; 
-  }
-  
-  const pendenciasParaImprimir = [];
-  selectedItems.forEach(id => { 
-    if (pendencias[id]) pendenciasParaImprimir.push(pendencias[id]); 
-  });
-  
-  if (pendenciasParaImprimir.length === 0) { 
-    alert('Nenhuma pendência encontrada!'); 
-    return; 
-  }
-  
-  const html = gerarHTMLImpressao(pendenciasParaImprimir, true);
-  imprimirDocumento(html);
-}
-
-window.imprimirPendencia = (id) => {
-  if (!currentPermissions.print) { 
-    alert('Sem permissão para imprimir!'); 
-    return; 
-  }
-  const p = pendencias[id];
-  if (p) {
-    const html = gerarHTMLImpressao(p, false);
-    imprimirDocumento(html);
-  } else {
-    alert('Pendência não encontrada!');
-  }
-};
-
+// ========== FUNÇÕES DE PENDÊNCIAS ==========
 function updateTable() {
   const statusFilter = document.getElementById('status-filter');
   const motivoFilter = document.getElementById('motivo-filter');
@@ -2139,14 +1839,14 @@ function updateTable() {
   const pendingCountEl = document.getElementById('pending-count');
   const emrotaCountEl = document.getElementById('emrota-count');
   const resolvedCountEl = document.getElementById('resolved-count');
-  const pendenciasTable = document.getElementById('pendencies-table');
+  const tableBody = document.getElementById('pendencies-table');
   
-  const statusVal = statusFilter ? statusFilter.value : 'todos';
-  const motivoVal = motivoFilter ? motivoFilter.value : 'todos';
-  const respVal = responsavelFilter ? responsavelFilter.value : 'todos';
-  const searchVal = searchInput ? searchInput.value.toLowerCase() : '';
-  const showRes = showResolved ? showResolved.checked : true;
-  const showUnres = showUnresolved ? showUnresolved.checked : true;
+  const statusVal = statusFilter?.value || 'todos';
+  const motivoVal = motivoFilter?.value || 'todos';
+  const respVal = responsavelFilter?.value || 'todos';
+  const searchVal = searchInput?.value.toLowerCase() || '';
+  const showRes = showResolved?.checked !== false;
+  const showUnres = showUnresolved?.checked !== false;
   
   let pendArray = Object.entries(pendencias).map(([id, p]) => ({ id, ...p }));
   pendArray = pendArray.filter(p => {
@@ -2160,10 +1860,10 @@ function updateTable() {
     return true;
   });
   
-  pendArray.sort((a,b) => {
+  pendArray.sort((a, b) => {
     let va = a[currentSort.field] || '', vb = b[currentSort.field] || '';
-    if (currentSort.field === 'data') { va = new Date(va); vb = new Date(vb); }
-    else { va = String(va).toLowerCase(); vb = String(vb).toLowerCase(); }
+    va = String(va).toLowerCase();
+    vb = String(vb).toLowerCase();
     return currentSort.order === 'asc' ? (va > vb ? 1 : -1) : (va < vb ? 1 : -1);
   });
   
@@ -2172,57 +1872,68 @@ function updateTable() {
   if (emrotaCountEl) emrotaCountEl.textContent = Object.values(pendencias).filter(p => p.status === 'emrota').length;
   if (resolvedCountEl) resolvedCountEl.textContent = Object.values(pendencias).filter(p => p.status === 'resolvido').length;
   
-  if (pendenciasTable) {
-    pendenciasTable.innerHTML = '';
-    if (pendArray.length === 0) { pendenciasTable.innerHTML = '<tr><td colspan="12" style="text-align:center">Nenhuma pendência encontrada<\/td><\/tr>'; return; }
-    
-    pendArray.forEach(p => {
-      const statusClass = p.status === 'pendente' ? 'status-pendente' : (p.status === 'emrota' ? 'status-emrota' : 'status-resolvido');
-      const statusText = p.status === 'pendente' ? 'Pendente' : (p.status === 'emrota' ? 'Em Rota' : 'Resolvido');
-      
-      const tr = document.createElement('tr');
-      let botoesAcao = '';
-      if (currentPermissions.edit) botoesAcao += `<button class="action-btn btn-edit" onclick="window.editarPendencia('${p.id}')">✏️ Editar</button>`;
-      if (currentPermissions.delete) botoesAcao += `<button class="action-btn btn-delete" onclick="window.excluirPendencia('${p.id}')">🗑️ Excluir</button>`;
-      if (currentPermissions.print) botoesAcao += `<button class="action-btn btn-print-row" onclick="window.imprimirPendencia('${p.id}')" title="Imprimir">🖨️ Imprimir</button>`;
-      
-      const baixadoPor = p.baixadoPor ? p.baixadoPor : (p.status === 'resolvido' ? (p.registradoPor || '-') : '-');
-      const dataBaixa = p.dataBaixa ? new Date(p.dataBaixa).toLocaleDateString('pt-BR') : '';
-      const baixadoDisplay = baixadoPor !== '-' ? `${baixadoPor}${dataBaixa ? ` (${dataBaixa})` : ''}` : '-';
-      
-      const registradoPor = p.registradoPor || '-';
-      const registradoEm = p.registradoEm ? new Date(p.registradoEm).toLocaleString('pt-BR') : '-';
-      const registradoDisplay = `${registradoPor} - ${registradoEm}`;
-      
-      tr.innerHTML = `
-        <td class="checkbox-col"><input type="checkbox" class="row-checkbox" data-id="${p.id}" ${selectedItems.has(p.id) ? 'checked' : ''}></td>
-        <td><strong>${p.numeroPendencia}</strong></td>
-        <td>${p.clienteCodigo || '-'}</td>
-        <td>${p.cliente || '-'}</td>
-        <td>${p.cidade || '-'}</td>
-        <td>${new Date(p.dataFalta).toLocaleDateString('pt-BR')}</td>
-        <td>${p.responsavel || '-'}</td>
-        <td>${p.motivo || '-'}</td>
-        <td><span class="${statusClass}" onclick="window.mudarStatus('${p.id}')">${statusText}</span></td>
-        <td>${baixadoDisplay}</td>
-        <td>${registradoDisplay}</td>
-        <td>${botoesAcao}</td>
-      `;
-      const cb = tr.querySelector('.row-checkbox');
-      if (cb) cb.addEventListener('change', (e) => { if (e.target.checked) selectedItems.add(p.id); else selectedItems.delete(p.id); updateSelectedCount(); });
-      pendenciasTable.appendChild(tr);
-    });
+  if (!tableBody) return;
+  if (pendArray.length === 0) {
+    tableBody.innerHTML = '<tr><td colspan="12" style="text-align:center">Nenhuma pendência encontrada<\/td><\/tr>';
+    return;
   }
+  
+  tableBody.innerHTML = '';
+  pendArray.forEach(p => {
+    const statusClass = p.status === 'pendente' ? 'status-pendente' : (p.status === 'emrota' ? 'status-emrota' : 'status-resolvido');
+    const statusText = p.status === 'pendente' ? 'Pendente' : (p.status === 'emrota' ? 'Em Rota' : 'Resolvido');
+    const baixadoPor = p.baixadoPor ? p.baixadoPor : (p.status === 'resolvido' ? (p.registradoPor || '-') : '-');
+    const dataBaixa = p.dataBaixa ? new Date(p.dataBaixa).toLocaleDateString('pt-BR') : '';
+    const baixadoDisplay = baixadoPor !== '-' ? `${baixadoPor}${dataBaixa ? ` (${dataBaixa})` : ''}` : '-';
+    const registradoDisplay = `${p.registradoPor || '-'} - ${p.registradoEm ? new Date(p.registradoEm).toLocaleString('pt-BR') : '-'}`;
+    
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td class="checkbox-col"><input type="checkbox" class="row-checkbox" data-id="${p.id}" ${selectedItems.has(p.id) ? 'checked' : ''}></td>
+      <td><strong>${p.numeroPendencia}</strong></td>
+      <td>${p.clienteCodigo || '-'}</td>
+      <td>${p.cliente || '-'}</td>
+      <td>${p.cidade || '-'}</td>
+      <td>${p.dataFalta ? new Date(p.dataFalta).toLocaleDateString('pt-BR') : '-'}</td>
+      <td>${p.responsavel || '-'}</td>
+      <td>${p.motivo || '-'}</td>
+      <td><span class="${statusClass}" onclick="window.mudarStatus('${p.id}')">${statusText}</span></td>
+      <td>${baixadoDisplay}</td>
+      <td>${registradoDisplay}</td>
+      <td>
+        ${currentPermissions.edit ? `<button class="action-btn btn-edit" onclick="window.editarPendencia('${p.id}')">✏️</button>` : ''}
+        ${currentPermissions.delete ? `<button class="action-btn btn-delete" onclick="window.excluirPendencia('${p.id}')">🗑️</button>` : ''}
+        ${currentPermissions.print ? `<button class="action-btn btn-print-row" onclick="window.imprimirPendencia('${p.id}')">🖨️</button>` : ''}
+      </td>
+    `;
+    const cb = tr.querySelector('.row-checkbox');
+    if (cb) cb.addEventListener('change', (e) => {
+      if (e.target.checked) selectedItems.add(p.id);
+      else selectedItems.delete(p.id);
+      updateSelectedCount();
+    });
+    tableBody.appendChild(tr);
+  });
   updateSelectedCount();
 }
 
+function updateSelectedCount() {
+  const span = document.getElementById('selected-count');
+  const headerCheckbox = document.getElementById('header-checkbox');
+  if (span) span.textContent = `${selectedItems.size} selecionada(s)`;
+  if (headerCheckbox) {
+    const allCbs = document.querySelectorAll('.row-checkbox');
+    const allChecked = allCbs.length > 0 && Array.from(allCbs).every(cb => cb.checked);
+    headerCheckbox.checked = allChecked;
+  }
+}
+
 window.editarPendencia = (id) => {
-  if (!currentPermissions.edit) { alert('Sem permissão para editar!'); return; }
+  if (!currentPermissions.edit) { alert('Sem permissão!'); return; }
   const pendencia = pendencias[id];
   if (!pendencia) { alert('Pendência não encontrada!'); return; }
   editingId = id;
-  const modalTitle = document.getElementById('modal-title');
-  if (modalTitle) modalTitle.textContent = 'Editar Pendência';
+  document.getElementById('modal-title').textContent = 'Editar Pendência';
   document.getElementById('cliente-codigo').value = pendencia.clienteCodigo || '';
   document.getElementById('cliente-nome').value = pendencia.cliente || '';
   document.getElementById('cliente-fantasia').value = pendencia.fantasia || '';
@@ -2239,13 +1950,13 @@ window.editarPendencia = (id) => {
   if (document.getElementById('status-input')) document.getElementById('status-input').value = pendencia.status || 'pendente';
   currentPendenciaItens = pendencia.itens ? [...pendencia.itens] : [];
   renderPendenciaItensList();
-  if (document.getElementById('edit-fields')) document.getElementById('edit-fields').style.display = 'block';
+  document.getElementById('edit-fields').style.display = 'block';
   document.getElementById('modal').style.display = 'flex';
 };
 
 window.excluirPendencia = (id) => {
-  if (!currentPermissions.delete) { alert('Sem permissão para excluir!'); return; }
-  if (confirm('Excluir esta pendência?')) { pendenciasRef.child(id).remove(); }
+  if (!currentPermissions.delete) { alert('Sem permissão!'); return; }
+  if (confirm('Excluir esta pendência?')) pendenciasRef.child(id).remove();
 };
 
 window.mudarStatus = async (id) => {
@@ -2256,94 +1967,235 @@ window.mudarStatus = async (id) => {
   await pendenciasRef.child(id).update({ status: novosStatus[p.status] });
 };
 
-const addButton = document.getElementById('add-button');
-if (addButton) {
-  addButton.addEventListener('click', () => {
-    if (!currentPermissions.create) { alert('Sem permissão!'); return; }
-    editingId = null;
-    document.getElementById('modal-title').textContent = 'Nova Pendência';
-    document.getElementById('pendencia-form').reset();
-    if (document.getElementById('edit-fields')) document.getElementById('edit-fields').style.display = 'none';
-    currentPendenciaItens = [];
-    renderPendenciaItensList();
-    
-    const proximoNumero = getNextNumeroPendencia();
-    document.getElementById('numero-pendencia-input').value = proximoNumero;
-    
-    document.getElementById('modal').style.display = 'flex';
-    setTimeout(() => document.getElementById('cliente-codigo').focus(), 100);
-  });
+function baixarPendencia() {
+  const numero = document.getElementById('baixar-numero').value.trim();
+  const msgDiv = document.getElementById('baixar-mensagem');
+  if (!numero) { mostrarMensagem('⚠️ Digite o número da pendência!', '#ff9800', msgDiv); return; }
+  
+  let pendenciaId = null;
+  for (const [id, p] of Object.entries(pendencias)) {
+    if (p.numeroPendencia === numero) { pendenciaId = id; break; }
+  }
+  if (!pendenciaId) { mostrarMensagem(`❌ Pendência nº ${numero} não encontrada!`, '#e74c3c', msgDiv); return; }
+  
+  const pendencia = pendencias[pendenciaId];
+  if (pendencia.status === 'resolvido') { mostrarMensagem(`✅ Pendência nº ${numero} já está resolvida!`, '#f39c12', msgDiv); return; }
+  
+  pendenciasRef.child(pendenciaId).update({ status: 'resolvido', dataBaixa: new Date().toISOString(), baixadoPor: users[currentUser]?.name || currentUser });
+  mostrarMensagem(`✅ Pendência nº ${numero} foi baixada com sucesso!`, '#27ae60', msgDiv);
+  document.getElementById('baixar-numero').value = '';
 }
 
-const cancelButton = document.getElementById('cancel-button');
-if (cancelButton) {
-  cancelButton.addEventListener('click', () => { 
-    document.getElementById('modal').style.display = 'none'; 
-  });
+function mostrarMensagem(texto, cor, elemento) {
+  if (!elemento) return;
+  elemento.textContent = texto;
+  elemento.style.backgroundColor = cor + '20';
+  elemento.style.color = cor;
+  elemento.style.display = 'flex';
+  setTimeout(() => { elemento.style.display = 'none'; }, 3000);
 }
 
-const pendenciaFormElem = document.getElementById('pendencia-form');
-if (pendenciaFormElem) {
-  pendenciaFormElem.addEventListener('submit', (e) => {
-    e.preventDefault();
-    
-    if (!editingId) {
-      const numeroDigitado = document.getElementById('numero-pendencia-input').value.trim();
-      const numeroExistente = Object.values(pendencias).some(p => p.numeroPendencia === numeroDigitado);
-      if (numeroExistente) {
-        alert(`O número ${numeroDigitado} já está em uso! Por favor, use outro número.`);
-        return;
-      }
-    }
-    
-    const pendencia = {
-      clienteCodigo: document.getElementById('cliente-codigo').value.trim(),
-      cliente: document.getElementById('cliente-nome').value.trim(),
-      fantasia: document.getElementById('cliente-fantasia').value.trim(),
-      endereco: document.getElementById('endereco-input').value.trim(),
-      telefone: document.getElementById('telefone-input').value.trim(),
-      cidade: document.getElementById('cidade-input').value.trim(),
-      bairro: document.getElementById('bairro-input').value.trim(),
-      dataFalta: document.getElementById('data-falta-input').value,
-      numeroPendencia: document.getElementById('numero-pendencia-input').value.trim(),
-      responsavel: document.getElementById('responsavel-input') ? document.getElementById('responsavel-input').value : '',
-      motivo: document.getElementById('motivo-input').value,
-      status: document.getElementById('status-input') ? document.getElementById('status-input').value : 'pendente',
-      tipoServico: document.getElementById('tipo-servico-input').value,
-      observacao: document.getElementById('observacao-input').value.trim(),
-      itens: currentPendenciaItens,
-      registradoPor: users[currentUser]?.name || currentUser,
-      registradoEm: new Date().toISOString()
-    };
-    
-    if (editingId) { 
-      pendenciasRef.child(editingId).update(pendencia);
-    } else { 
-      pendenciasRef.push().set(pendencia);
-      calcularProximoNumero();
-    }
-    document.getElementById('modal').style.display = 'none';
-  });
+function imprimirPendenciaAtual() {
+  if (!currentPermissions.print) { alert('Sem permissão!'); return; }
+  const html = gerarHTMLImpressao({
+    clienteCodigo: document.getElementById('cliente-codigo')?.value.trim() || '',
+    cliente: document.getElementById('cliente-nome')?.value.trim() || '',
+    fantasia: document.getElementById('cliente-fantasia')?.value.trim() || '',
+    endereco: document.getElementById('endereco-input')?.value.trim() || '',
+    cidade: document.getElementById('cidade-input')?.value.trim() || '',
+    bairro: document.getElementById('bairro-input')?.value.trim() || '',
+    dataFalta: document.getElementById('data-falta-input')?.value || '',
+    numeroPendencia: document.getElementById('numero-pendencia-input')?.value.trim() || '',
+    tipoServico: document.getElementById('tipo-servico-input')?.value || 'SOMENTE ENTREGAR',
+    observacao: document.getElementById('observacao-input')?.value.trim() || '',
+    itens: currentPendenciaItens
+  }, false);
+  imprimirDocumento(html);
 }
 
-const exportButton = document.getElementById('export-button');
-if (exportButton) {
-  exportButton.addEventListener('click', () => {
-    if (!currentPermissions.export) { alert('Sem permissão!'); return; }
-    const csv = ['Nº Pendência;Código;Cliente;Cidade;Data Falta;Responsável;Motivo;Situação;Baixada por;Registrado por;Data Registro'];
-    Object.values(pendencias).forEach(p => {
-      const baixadoPor = p.baixadoPor ? p.baixadoPor : (p.status === 'resolvido' ? (p.registradoPor || '') : '');
-      const registradoPor = p.registradoPor || '';
-      const registradoEm = p.registradoEm ? new Date(p.registradoEm).toLocaleString('pt-BR') : '';
-      csv.push(`${p.numeroPendencia || ''};${p.clienteCodigo || ''};${p.cliente || ''};${p.cidade || ''};${p.dataFalta};${p.responsavel || ''};${p.motivo || ''};${p.status};${baixadoPor};${registradoPor};${registradoEm}`);
-    });
-    const blob = new Blob([csv.join('\n')], { type: 'text/csv;charset=utf-8' });
-    const link = document.createElement('a');
-    link.href = URL.createObjectURL(blob);
-    link.download = `pendencias_${new Date().toISOString().split('T')[0]}.csv`;
-    link.click();
-  });
+function imprimirPendenciasSelecionadas() {
+  if (!currentPermissions.print) { alert('Sem permissão!'); return; }
+  if (selectedItems.size === 0) { alert('Selecione pelo menos uma pendência!'); return; }
+  const pendenciasParaImprimir = [];
+  selectedItems.forEach(id => { if (pendencias[id]) pendenciasParaImprimir.push(pendencias[id]); });
+  if (pendenciasParaImprimir.length === 0) { alert('Nenhuma pendência encontrada!'); return; }
+  const html = gerarHTMLImpressao(pendenciasParaImprimir, true);
+  imprimirDocumento(html);
 }
+
+window.imprimirPendencia = (id) => {
+  if (!currentPermissions.print) { alert('Sem permissão!'); return; }
+  const p = pendencias[id];
+  if (p) imprimirDocumento(gerarHTMLImpressao(p, false));
+  else alert('Pendência não encontrada!');
+};
+
+function gerarHTMLImpressao(data, isMultiple) {
+  const renderPendencia = (p) => `
+    <div class="print-document" style="margin-bottom:30px; page-break-after:always; border:1px solid #ddd; padding:20px; background:white; font-family:'Courier New', monospace;">
+      <div style="text-align:center; font-size:16pt; font-weight:bold; color:#1a472a; border-bottom:2px solid #1a472a; padding-bottom:5px;">DISLAM DISTRIBUIDORA</div>
+      <div style="text-align:center; margin:15px 0;">
+        <h1 style="font-size:20pt;">PENDÊNCIA Nº ${p.numeroPendencia || 'N/A'}</h1>
+        <div>Data da Falta: ${p.dataFalta ? new Date(p.dataFalta).toLocaleDateString('pt-BR') : ''}</div>
+      </div>
+      <div style="border:1px solid #000; padding:10px; margin-bottom:15px;">
+        <div><strong>CÓDIGO:</strong> ${p.clienteCodigo || ''}</div>
+        <div><strong>CLIENTE:</strong> ${p.cliente || ''}</div>
+        <div><strong>ENDEREÇO:</strong> ${p.endereco || ''}</div>
+        <div><strong>CIDADE:</strong> ${p.cidade || ''} - <strong>BAIRRO:</strong> ${p.bairro || ''}</div>
+      </div>
+      <div style="text-align:center; margin:15px 0;">
+        <div style="font-size:18pt; font-weight:bold; color:#c0392b; border:2px solid #c0392b; display:inline-block; padding:10px;">ATENÇÃO!!</div>
+      </div>
+      <div style="text-align:center; margin:15px 0;">
+        <div style="font-size:14pt; font-weight:bold; background:#f0f0f0; padding:10px;">${p.tipoServico || 'SOMENTE ENTREGAR'}</div>
+      </div>
+      <table style="width:100%; border-collapse:collapse;">
+        <thead><tr style="background:#f0f0f0;"><th style="border:1px solid #000; padding:8px;">CÓDIGO</th><th style="border:1px solid #000; padding:8px;">DESCRIÇÃO</th><th style="border:1px solid #000; padding:8px;">QTD</th></tr></thead>
+        <tbody>${(p.itens || []).map(i => `<tr><td style="border:1px solid #000; padding:8px;">${i.codigo}</td><td style="border:1px solid #000; padding:8px;">${i.descricao}</td><td style="border:1px solid #000; padding:8px;">${i.quantidade}</td></tr>`).join('') || '<tr><td colspan="3" style="text-align:center;">Nenhum item</td></tr>'}</tbody>
+      </table>
+      <div style="margin-top:20px; border:1px solid #000; padding:15px; min-height:80px;"><strong>OBSERVAÇÃO:</strong><br>${p.observacao || ''}</div>
+      <div style="margin-top:50px; display:flex; justify-content:space-between;">
+        <div style="text-align:center;"><div style="border-top:1px solid #000; width:200px;"></div>Assinatura do Cliente</div>
+        <div style="text-align:center;"><div style="border-top:1px solid #000; width:200px;"></div>Motorista Responsável</div>
+      </div>
+    </div>
+  `;
+  
+  let html = `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>DISLAM - Pendência</title><style>body{margin:0;padding:20px;font-family:'Courier New',monospace;}@media print{.print-document{page-break-after:always;}}</style></head><body>`;
+  if (isMultiple) data.forEach(p => html += renderPendencia(p));
+  else html += renderPendencia(data);
+  html += `</body></html>`;
+  return html;
+}
+
+function imprimirDocumento(html) {
+  const win = window.open('', '_blank', 'width=800,height=600');
+  if (win) { win.document.write(html); win.document.close(); win.print(); }
+  else alert('Permita pop-ups para imprimir.');
+}
+
+// ========== EVENTOS E INICIALIZAÇÃO ==========
+document.getElementById('login-form')?.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const success = await login(document.getElementById('login-username').value, document.getElementById('login-password').value);
+  if (success) showMainSystem();
+});
+
+document.getElementById('logout-button')?.addEventListener('click', logout);
+document.getElementById('cancel-button')?.addEventListener('click', () => document.getElementById('modal').style.display = 'none');
+document.getElementById('add-button')?.addEventListener('click', () => {
+  if (!currentPermissions.create) { alert('Sem permissão!'); return; }
+  editingId = null;
+  document.getElementById('modal-title').textContent = 'Nova Pendência';
+  document.getElementById('pendencia-form').reset();
+  document.getElementById('edit-fields').style.display = 'none';
+  currentPendenciaItens = [];
+  renderPendenciaItensList();
+  document.getElementById('numero-pendencia-input').value = getNextNumeroPendencia();
+  document.getElementById('modal').style.display = 'flex';
+  setTimeout(() => document.getElementById('cliente-codigo').focus(), 100);
+});
+
+document.getElementById('pendencia-form')?.addEventListener('submit', (e) => {
+  e.preventDefault();
+  const numero = document.getElementById('numero-pendencia-input').value.trim();
+  if (!editingId && Object.values(pendencias).some(p => p.numeroPendencia === numero)) {
+    alert(`O número ${numero} já está em uso!`);
+    return;
+  }
+  const pendencia = {
+    clienteCodigo: document.getElementById('cliente-codigo').value.trim(),
+    cliente: document.getElementById('cliente-nome').value.trim(),
+    fantasia: document.getElementById('cliente-fantasia').value.trim(),
+    endereco: document.getElementById('endereco-input').value.trim(),
+    telefone: document.getElementById('telefone-input').value.trim(),
+    cidade: document.getElementById('cidade-input').value.trim(),
+    bairro: document.getElementById('bairro-input').value.trim(),
+    dataFalta: document.getElementById('data-falta-input').value,
+    numeroPendencia: numero,
+    responsavel: document.getElementById('responsavel-input')?.value || '',
+    motivo: document.getElementById('motivo-input').value,
+    status: document.getElementById('status-input')?.value || 'pendente',
+    tipoServico: document.getElementById('tipo-servico-input').value,
+    observacao: document.getElementById('observacao-input').value.trim(),
+    itens: currentPendenciaItens,
+    registradoPor: users[currentUser]?.name || currentUser,
+    registradoEm: new Date().toISOString()
+  };
+  if (editingId) pendenciasRef.child(editingId).update(pendencia);
+  else pendenciasRef.push().set(pendencia);
+  calcularProximoNumero();
+  document.getElementById('modal').style.display = 'none';
+});
+
+document.getElementById('export-button')?.addEventListener('click', () => {
+  if (!currentPermissions.export) { alert('Sem permissão!'); return; }
+  const csv = ['Nº;Código;Cliente;Cidade;Data;Responsável;Motivo;Situação;Baixada por;Registrado por'];
+  Object.values(pendencias).forEach(p => {
+    csv.push(`${p.numeroPendencia};${p.clienteCodigo};${p.cliente};${p.cidade};${p.dataFalta};${p.responsavel};${p.motivo};${p.status};${p.baixadoPor || ''};${p.registradoPor || ''}`);
+  });
+  const blob = new Blob([csv.join('\n')], { type: 'text/csv' });
+  const link = document.createElement('a');
+  link.href = URL.createObjectURL(blob);
+  link.download = `pendencias_${new Date().toISOString().split('T')[0]}.csv`;
+  link.click();
+});
+
+document.getElementById('import-clientes-btn')?.addEventListener('click', () => {
+  if (!currentPermissions.importClientes) { alert('Sem permissão!'); return; }
+  const file = document.getElementById('client-file').files[0];
+  if (!file) { alert('Selecione um arquivo!'); return; }
+  importarClientes(file);
+});
+
+document.getElementById('import-itens-btn')?.addEventListener('click', () => {
+  if (!currentPermissions.importItens) { alert('Sem permissão!'); return; }
+  const file = document.getElementById('item-file').files[0];
+  if (!file) { alert('Selecione um arquivo!'); return; }
+  importarItens(file);
+});
+
+document.getElementById('search-client')?.addEventListener('click', () => {
+  const codigo = document.getElementById('client-code').value.trim();
+  const cliente = clientesDB[codigo];
+  if (cliente) {
+    document.getElementById('client-details').innerHTML = `
+      <div><span class="info-label">Código:</span> ${codigo}</div>
+      <div><span class="info-label">Nome:</span> ${cliente.nome || '-'}</div>
+      <div><span class="info-label">Fantasia:</span> ${cliente.fantasia || '-'}</div>
+      <div><span class="info-label">Endereço:</span> ${cliente.endereco || '-'}</div>
+      <div><span class="info-label">Cidade:</span> ${cliente.cidade || '-'}</div>
+    `;
+    document.getElementById('client-info').style.display = 'block';
+  } else { alert('Cliente não encontrado!'); }
+});
+
+document.getElementById('select-all-btn')?.addEventListener('click', () => {
+  document.querySelectorAll('.row-checkbox').forEach(cb => { cb.checked = true; selectedItems.add(cb.dataset.id); });
+  updateSelectedCount();
+});
+document.getElementById('deselect-all-btn')?.addEventListener('click', () => {
+  document.querySelectorAll('.row-checkbox').forEach(cb => { cb.checked = false; selectedItems.delete(cb.dataset.id); });
+  updateSelectedCount();
+});
+document.getElementById('delete-selected-btn')?.addEventListener('click', () => {
+  if (selectedItems.size === 0) { alert('Nenhuma selecionada!'); return; }
+  if (confirm(`Excluir ${selectedItems.size} pendência(s)?`)) {
+    selectedItems.forEach(id => pendenciasRef.child(id).remove());
+    selectedItems.clear();
+    updateSelectedCount();
+  }
+});
+document.getElementById('delete-all-btn')?.addEventListener('click', () => {
+  const total = Object.keys(pendencias).length;
+  if (total === 0) { alert('Nenhuma pendência!'); return; }
+  if (confirm(`⚠️ EXCLUIR TODAS as ${total} pendências?`) && prompt('Digite "EXCLUIR" para confirmar:') === 'EXCLUIR') {
+    pendenciasRef.set(null);
+    selectedItems.clear();
+    updateSelectedCount();
+  }
+});
 
 document.querySelectorAll('.sort-btn').forEach(btn => btn.addEventListener('click', () => {
   const field = btn.dataset.sort;
@@ -2352,176 +2204,82 @@ document.querySelectorAll('.sort-btn').forEach(btn => btn.addEventListener('clic
   updateTable();
 }));
 
-const addItemBtn = document.getElementById('add-item-btn');
-if (addItemBtn) addItemBtn.addEventListener('click', addItemToPendencia);
+document.getElementById('status-filter')?.addEventListener('change', updateTable);
+document.getElementById('motivo-filter')?.addEventListener('change', updateTable);
+document.getElementById('responsavel-filter')?.addEventListener('change', updateTable);
+document.getElementById('search-input')?.addEventListener('input', updateTable);
+document.getElementById('show-resolved')?.addEventListener('change', updateTable);
+document.getElementById('show-unresolved')?.addEventListener('change', updateTable);
+document.getElementById('print-button')?.addEventListener('click', imprimirPendenciaAtual);
+document.getElementById('print-selected-btn')?.addEventListener('click', imprimirPendenciasSelecionadas);
+document.getElementById('btn-baixar-pendencia')?.addEventListener('click', baixarPendencia);
+document.getElementById('add-item-btn')?.addEventListener('click', addItemToPendencia);
+document.getElementById('cliente-codigo')?.addEventListener('blur', () => preencherDadosCliente(document.getElementById('cliente-codigo').value.trim()));
+document.getElementById('item-codigo-input')?.addEventListener('blur', () => preencherDadosItem(document.getElementById('item-codigo-input').value.trim()));
 
-const printButtonElem = document.getElementById('print-button');
-if (printButtonElem) printButtonElem.addEventListener('click', imprimirPendenciaAtual);
+document.querySelectorAll('.tab-btn').forEach(btn => btn.addEventListener('click', () => {
+  const tabId = btn.dataset.tab;
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+  document.getElementById(tabId).classList.add('active');
+  if (tabId === 'clientes-tab') renderClientesList();
+  if (tabId === 'itens-tab') renderItemsList();
+  if (tabId === 'sessoes-tab' && currentPermissions.manageUsers) carregarSessoesAtivas();
+}));
 
-const printSelectedBtnElem = document.getElementById('print-selected-btn');
-if (printSelectedBtnElem) printSelectedBtnElem.addEventListener('click', imprimirPendenciasSelecionadas);
-
-const statusFilterElem = document.getElementById('status-filter');
-const motivoFilterElem = document.getElementById('motivo-filter');
-const responsavelFilterElem = document.getElementById('responsavel-filter');
-const searchInputElem = document.getElementById('search-input');
-const showResolvedElem = document.getElementById('show-resolved');
-const showUnresolvedElem = document.getElementById('show-unresolved');
-const headerCheckboxElem = document.getElementById('header-checkbox');
-const selectAllBtnElem = document.getElementById('select-all-btn');
-const deselectAllBtnElem = document.getElementById('deselect-all-btn');
-const deleteSelectedBtnElem = document.getElementById('delete-selected-btn');
-const deleteAllBtnElem = document.getElementById('delete-all-btn');
-
-if (statusFilterElem) statusFilterElem.addEventListener('change', updateTable);
-if (motivoFilterElem) motivoFilterElem.addEventListener('change', updateTable);
-if (responsavelFilterElem) responsavelFilterElem.addEventListener('change', updateTable);
-if (searchInputElem) searchInputElem.addEventListener('input', updateTable);
-if (showResolvedElem) showResolvedElem.addEventListener('change', updateTable);
-if (showUnresolvedElem) showUnresolvedElem.addEventListener('change', updateTable);
-if (headerCheckboxElem) headerCheckboxElem.addEventListener('change', (e) => e.target.checked ? selectAllPendencias() : deselectAllPendencias());
-if (selectAllBtnElem) selectAllBtnElem.addEventListener('click', selectAllPendencias);
-if (deselectAllBtnElem) deselectAllBtnElem.addEventListener('click', deselectAllPendencias);
-if (deleteSelectedBtnElem) deleteSelectedBtnElem.addEventListener('click', deleteSelectedPendencias);
-if (deleteAllBtnElem) deleteAllBtnElem.addEventListener('click', deleteAllPendencias);
-
-const logoutButton = document.getElementById('logout-button');
-if (logoutButton) logoutButton.addEventListener('click', logout);
-
-const loginFormElem = document.getElementById('login-form');
-if (loginFormElem) {
-  loginFormElem.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const errorDiv = document.getElementById('login-error');
-    const username = document.getElementById('login-username').value;
-    const password = document.getElementById('login-password').value;
-    const success = await login(username, password);
-    if (success) {
-      if (errorDiv) errorDiv.style.display = 'none';
-      showMainSystem();
-    } else if (!errorDiv?.innerText.includes('já está logado')) {
-      if (errorDiv) {
-        errorDiv.textContent = 'Usuário ou senha inválidos!';
-        errorDiv.style.display = 'block';
-      }
-    }
-  });
-}
-
-// Listener para quando a página for fechada/recarregada
-window.addEventListener('beforeunload', () => {
-  if (currentUser) {
-    // Remove sessão ao fechar a aba/navegador
-    removerSessao(currentUser);
-  }
+document.getElementById('create-user-form')?.addEventListener('submit', (e) => {
+  e.preventDefault();
+  const newUser = document.getElementById('new-username').value.trim();
+  const newPass = document.getElementById('new-password').value;
+  const newRole = document.getElementById('new-role').value;
+  if (users[newUser]) { alert('Usuário já existe!'); return; }
+  users[newUser] = { password: newPass, name: newUser, role: newRole, permissions: { create: true, edit: false, delete: false, changeStatus: true, export: false, print: false, importClientes: false, importItens: false, batchDelete: false, deleteAll: false, manageUsers: false, viewClientes: true, viewPendencias: true, searchCliente: true, showSearchCliente: true, baixarPendencia: true } };
+  saveUsersToFirebase();
+  loadUsersList();
+  alert('Usuário criado!');
 });
 
-// Eventos da tela de login
-const showChangePasswordLink = document.getElementById('show-change-password');
+// Tela de login - alterar senha
+const showChangePassword = document.getElementById('show-change-password');
 const changePasswordForm = document.getElementById('change-password-form');
 const cancelChangePassword = document.getElementById('cancel-change-password');
-const loginError = document.getElementById('login-error');
-
-if (showChangePasswordLink) {
-  showChangePasswordLink.addEventListener('click', () => {
-    loginFormElem.style.display = 'none';
-    changePasswordForm.style.display = 'block';
-    if (loginError) loginError.style.display = 'none';
-  });
-}
-
-if (cancelChangePassword) {
-  cancelChangePassword.addEventListener('click', () => {
+if (showChangePassword) showChangePassword.addEventListener('click', () => {
+  document.getElementById('login-form').style.display = 'none';
+  changePasswordForm.style.display = 'block';
+});
+if (cancelChangePassword) cancelChangePassword.addEventListener('click', () => {
+  changePasswordForm.style.display = 'none';
+  document.getElementById('login-form').style.display = 'block';
+});
+if (changePasswordForm) changePasswordForm.addEventListener('submit', (e) => {
+  e.preventDefault();
+  const username = document.getElementById('change-username').value.trim();
+  const currentPass = document.getElementById('current-password').value;
+  const newPass = document.getElementById('new-password').value;
+  const confirmPass = document.getElementById('confirm-new-password').value;
+  const errorDiv = document.getElementById('change-password-error');
+  const successDiv = document.getElementById('change-password-success');
+  errorDiv.style.display = 'none';
+  successDiv.style.display = 'none';
+  if (newPass !== confirmPass) { errorDiv.textContent = 'Senhas não coincidem!'; errorDiv.style.display = 'block'; return; }
+  if (!users[username]) { errorDiv.textContent = 'Usuário não encontrado!'; errorDiv.style.display = 'block'; return; }
+  if (users[username].password !== currentPass) { errorDiv.textContent = 'Senha atual incorreta!'; errorDiv.style.display = 'block'; return; }
+  if (newPass.length < 4) { errorDiv.textContent = 'Senha deve ter pelo menos 4 caracteres!'; errorDiv.style.display = 'block'; return; }
+  users[username].password = newPass;
+  saveUsersToFirebase();
+  successDiv.textContent = 'Senha alterada com sucesso!';
+  successDiv.style.display = 'block';
+  setTimeout(() => {
     changePasswordForm.style.display = 'none';
-    loginFormElem.style.display = 'block';
-  });
-}
-
-if (changePasswordForm) {
-  changePasswordForm.addEventListener('submit', (e) => {
-    e.preventDefault();
-    
-    const username = document.getElementById('change-username').value.trim();
-    const currentPassword = document.getElementById('current-password').value;
-    const newPassword = document.getElementById('new-password').value;
-    const confirmPassword = document.getElementById('confirm-new-password').value;
-    
-    const errorDiv = document.getElementById('change-password-error');
-    const successDiv = document.getElementById('change-password-success');
-    
-    if (errorDiv) errorDiv.style.display = 'none';
-    if (successDiv) successDiv.style.display = 'none';
-    
-    if (newPassword !== confirmPassword) {
-      if (errorDiv) {
-        errorDiv.textContent = 'A nova senha e a confirmação não coincidem!';
-        errorDiv.style.display = 'block';
-      }
-      return;
-    }
-    
-    if (!users[username]) {
-      if (errorDiv) {
-        errorDiv.textContent = 'Usuário não encontrado!';
-        errorDiv.style.display = 'block';
-      }
-      return;
-    }
-    
-    if (users[username].password !== currentPassword) {
-      if (errorDiv) {
-        errorDiv.textContent = 'Senha atual incorreta!';
-        errorDiv.style.display = 'block';
-      }
-      return;
-    }
-    
-    if (newPassword.length < 4) {
-      if (errorDiv) {
-        errorDiv.textContent = 'A nova senha deve ter pelo menos 4 caracteres!';
-        errorDiv.style.display = 'block';
-      }
-      return;
-    }
-    
-    users[username].password = newPassword;
-    saveUsersToFirebase();
-    
-    if (successDiv) {
-      successDiv.textContent = 'Senha alterada com sucesso!';
-      successDiv.style.display = 'block';
-    }
-    
-    setTimeout(() => {
-      if (changePasswordForm) changePasswordForm.style.display = 'none';
-      if (loginFormElem) loginFormElem.style.display = 'block';
-      if (successDiv) successDiv.style.display = 'none';
-      
-      // Se o usuário que trocou a senha está logado, força logout
-      if (currentUser === username) {
-        alert('Senha alterada! Faça login novamente.');
-        logout();
-      }
-    }, 2000);
-  });
-}
-
-document.addEventListener("DOMContentLoaded", function() {
-  const printBtn = document.getElementById('print-button');
-  if (printBtn) {
-    printBtn.onclick = imprimirPendenciaAtual;
-  }
-  
-  const printSelectedBtn = document.getElementById('print-selected-btn');
-  if (printSelectedBtn) {
-    printSelectedBtn.onclick = imprimirPendenciasSelecionadas;
-  }
-  
-  console.log('✅ Sistema inicializado - Segurança ativa!');
-  console.log('✅ Campos editáveis - você pode alterar nome do cliente e descrição do item manualmente');
-  console.log('✅ Novo motivo "Sem Motivo" adicionado');
+    document.getElementById('login-form').style.display = 'block';
+    successDiv.style.display = 'none';
+    if (currentUser === username) logout();
+  }, 2000);
 });
 
+// Inicialização
+document.addEventListener("DOMContentLoaded", () => console.log('✅ Sistema DISLAM inicializado!'));
 loadUltimoNumero();
 loadUsersFromFirebase();
 loadClientesFromFirebase();
