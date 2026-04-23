@@ -1297,7 +1297,7 @@ function resetInactivityTimer() {
   inactivityTimer = setTimeout(() => {
     if (currentUser) {
       console.log('Logout por inatividade');
-      alert('⏰ Sessão expirada por inatividade (5 minutos). Faça login novamente.');
+      alert('⏰ Sessão expirada por inatividade (20 minutos). Faça login novamente.');
       logout();
     }
   }, INACTIVITY_TIMEOUT);
@@ -1900,11 +1900,11 @@ function updateTable() {
       <td><span class="${statusClass}" onclick="window.mudarStatus('${p.id}')">${statusText}</span></td>
       <td>${baixadoDisplay}</td>
       <td>${registradoDisplay}</td>
-      <td>
-        ${currentPermissions.edit ? `<button class="action-btn btn-edit" onclick="window.editarPendencia('${p.id}')">✏️</button>` : ''}
-        ${currentPermissions.delete ? `<button class="action-btn btn-delete" onclick="window.excluirPendencia('${p.id}')">🗑️</button>` : ''}
-        ${currentPermissions.print ? `<button class="action-btn btn-print-row" onclick="window.imprimirPendencia('${p.id}')">🖨️</button>` : ''}
-      </td>
+      <td style="white-space: nowrap;">
+  <button class="action-btn btn-edit" onclick="window.editarPendencia('${p.id}')" style="background:#3498db; color:white; border:none; padding:5px 8px; margin:2px; border-radius:3px; cursor:pointer;">✏️</button>
+  <button class="action-btn btn-delete" onclick="window.excluirPendencia('${p.id}')" style="background:#e74c3c; color:white; border:none; padding:5px 8px; margin:2px; border-radius:3px; cursor:pointer;">🗑️</button>
+  <button class="action-btn btn-print-row" onclick="window.imprimirPendencia('${p.id}')" style="background:#16a085; color:white; border:none; padding:5px 8px; margin:2px; border-radius:3px; cursor:pointer;">🖨️</button>
+</td>
     `;
     const cb = tr.querySelector('.row-checkbox');
     if (cb) cb.addEventListener('change', (e) => {
