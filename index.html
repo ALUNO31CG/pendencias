@@ -29,24 +29,42 @@
       background: linear-gradient(135deg, #dd6c02 0%, #dd6c02 100%);
       color: white;
       padding: 20px;
+    }
+    .logo-text h1 { font-size: 24px; margin-bottom: 5px; }
+    .logo-text p { font-size: 12px; opacity: 0.8; }
+    
+    /* Seções minimizáveis */
+    .collapsible-section {
+      border-bottom: 1px solid #ddd;
+    }
+    .section-header {
+      background: #ecf0f1;
+      padding: 12px 20px;
+      cursor: pointer;
       display: flex;
+      justify-content: space-between;
       align-items: center;
-      gap: 20px;
-      flex-wrap: wrap;
+      font-weight: bold;
+      color: #2c3e50;
     }
-    .logo-area {
-      display: flex;
-      align-items: center;
-      gap: 15px;
+    .section-header:hover {
+      background: #dfe3e6;
     }
-    .logo-text h1 {
-      font-size: 24px;
-      margin-bottom: 5px;
+    .section-header .toggle-icon {
+      font-size: 18px;
+      transition: transform 0.3s;
     }
-    .logo-text p {
-      font-size: 12px;
-      opacity: 0.8;
+    .section-header.collapsed .toggle-icon {
+      transform: rotate(-90deg);
     }
+    .section-content {
+      padding: 15px 20px;
+      transition: all 0.3s ease;
+    }
+    .section-content.collapsed {
+      display: none;
+    }
+    
     .import-section {
       background: #ecf0f1;
       padding: 20px;
@@ -78,68 +96,16 @@
       font-weight: bold;
       color: #2c3e50;
     }
-    .import-group input, .import-group select {
-      margin-bottom: 0;
-    }
     .btn-import {
       background: #8e44ad;
       height: 42px;
       width: auto;
       padding: 0 20px;
     }
-    .btn-import-clientes {
-      background: #27ae60;
-    }
-    .btn-import-itens {
-      background: #2980b9;
-    }
-    .btn-import:hover {
-      opacity: 0.9;
-    }
-    .client-search {
-      background: white;
-      padding: 20px;
-      border-bottom: 1px solid #ddd;
-      display: flex;
-      gap: 10px;
-      align-items: flex-end;
-      flex-wrap: wrap;
-    }
-    .client-search input {
-      flex: 2;
-      margin-bottom: 0;
-    }
-    .client-search button {
-      width: auto;
-      padding: 0 20px;
-      margin-bottom: 0;
-    }
-    .client-info {
-      background: #e8f4fd;
-      padding: 15px;
-      margin: 0 20px 20px 20px;
-      border-radius: 8px;
-      display: none;
-    }
-    .client-info h3 {
-      color: #2c3e50;
-      margin-bottom: 10px;
-    }
-    .info-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-      gap: 10px;
-    }
-    .info-item {
-      display: flex;
-      gap: 10px;
-    }
-    .info-label {
-      font-weight: bold;
-      color: #7f8c8d;
-    }
+    .btn-import-clientes { background: #27ae60; }
+    .btn-import-itens { background: #2980b9; }
+    
     .controls {
-      padding: 20px;
       background: #ecf0f1;
       display: flex;
       flex-wrap: wrap;
@@ -147,19 +113,37 @@
     }
     .filter-section {
       flex: 1;
-      min-width: 180px;
+      min-width: 150px;
     }
     .filter-section h3 {
       margin-bottom: 10px;
       color: #2c3e50;
-      font-size: 14px;
+      font-size: 13px;
+      cursor: pointer;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .filter-section h3 .filter-toggle-icon {
+      font-size: 12px;
+      transition: transform 0.3s;
+    }
+    .filter-section h3.collapsed .filter-toggle-icon {
+      transform: rotate(-90deg);
+    }
+    .filter-options {
+      transition: all 0.3s ease;
+    }
+    .filter-options.collapsed {
+      display: none;
     }
     select, input, button {
-      padding: 10px;
+      padding: 8px;
       border: 1px solid #ddd;
       border-radius: 5px;
       width: 100%;
-      margin-bottom: 10px;
+      margin-bottom: 8px;
+      font-size: 13px;
     }
     button {
       background: #3498db;
@@ -169,44 +153,25 @@
       transition: background 0.3s;
       font-weight: bold;
     }
-    button:hover {
-      background: #2980b9;
-    }
-    button:disabled {
-      background: #95a5a6;
-      cursor: not-allowed;
-    }
-    .btn-add {
-      background: #1e7542;
-    }
-    .btn-add:hover:not(:disabled) {
-      background: #219653;
-    }
-    .btn-export {
-      background: #f39c12;
-    }
-    .btn-export:hover:not(:disabled) {
-      background: #e67e22;
-    }
-    .btn-print {
-      background: #16a085;
-    }
-    .btn-print-selected {
-      background: #8e44ad;
-    }
-    .btn-baixar {
-      background: #27ae60;
-    }
+    button:hover { background: #2980b9; }
+    .btn-add { background: #1e7542; }
+    .btn-add:hover { background: #219653; }
+    .btn-export { background: #f39c12; }
+    .btn-print-selected { background: #8e44ad; }
+    .btn-baixar { background: #27ae60; }
+    .btn-danger { background: #e74c3c; }
+    .btn-danger:hover { background: #c0392b; }
+    
     .sort-buttons {
       display: flex;
-      gap: 10px;
-      margin-bottom: 10px;
       flex-wrap: wrap;
+      gap: 5px;
+      margin-bottom: 10px;
     }
     .sort-btn {
       background: #34495e;
-      font-size: 12px;
-      padding: 8px;
+      font-size: 11px;
+      padding: 6px;
       margin-bottom: 0;
       width: auto;
     }
@@ -216,14 +181,15 @@
     }
     table {
       width: 100%;
+      min-width: 1300px;
       border-collapse: collapse;
       margin-top: 20px;
     }
     th, td {
-      padding: 10px 12px;
+      padding: 8px 10px;
       text-align: left;
       border-bottom: 1px solid #ddd;
-      font-size: 13px;
+      font-size: 12px;
     }
     th {
       background-color: #2c3e50;
@@ -231,15 +197,14 @@
       position: sticky;
       top: 0;
     }
-    tr:hover {
-      background-color: #f5f5f5;
-    }
+    tr:hover { background-color: #f5f5f5; }
+    
     .status-pendente {
       background-color: #ffcccc;
       color: #c0392b;
-      padding: 4px 8px;
+      padding: 3px 6px;
       border-radius: 20px;
-      font-size: 11px;
+      font-size: 10px;
       font-weight: bold;
       display: inline-block;
       cursor: pointer;
@@ -247,9 +212,9 @@
     .status-resolvido {
       background-color: #ccffcc;
       color: #27ae60;
-      padding: 4px 8px;
+      padding: 3px 6px;
       border-radius: 20px;
-      font-size: 11px;
+      font-size: 10px;
       font-weight: bold;
       display: inline-block;
       cursor: pointer;
@@ -257,42 +222,28 @@
     .status-emrota {
       background-color: #fff3cd;
       color: #856404;
-      padding: 4px 8px;
+      padding: 3px 6px;
       border-radius: 20px;
-      font-size: 11px;
+      font-size: 10px;
       font-weight: bold;
       display: inline-block;
       cursor: pointer;
     }
     .action-btn {
-      padding: 4px 8px;
-      margin-right: 3px;
-      border: none;
-      border-radius: 3px;
-      cursor: pointer;
-      font-size: 11px;
-    }
-    .btn-edit {
-      background: #3498db;
-      color: white;
-    }
-    .btn-delete {
-      background: #e74c3c;
-      color: white;
-    }
-    .btn-print-row {
-      background: #16a085;
-      color: white;
-    }
-    .checkbox-col {
-      width: 30px;
-      text-align: center;
-    }
-    .checkbox-col input {
-      width: 16px;
-      height: 16px;
-      margin: 0;
-    }
+  padding: 1px 4px;         
+  margin: 0px 1px;
+  border: none;
+  border-radius: 2px;
+  cursor: pointer;
+  font-size: 9px;
+  width: 22px;
+  height: 20px;
+}
+
+.btn-edit { background: #3498db; color: white; }
+.btn-delete { background: #e74c3c; color: white; }
+.btn-print-row { background: #16a085; color: white; }
+    
     .modal {
       display: none;
       position: fixed;
@@ -328,19 +279,20 @@
     }
     .form-group {
       flex: 1;
-      min-width: 200px;
+      min-width: 180px;
     }
     .form-group label {
       display: block;
       margin-bottom: 5px;
       font-weight: bold;
-      font-size: 13px;
+      font-size: 12px;
     }
     .form-group input, .form-group select, .form-group textarea {
       width: 100%;
       padding: 8px;
       border: 1px solid #ddd;
       border-radius: 5px;
+      font-size: 13px;
     }
     .form-group textarea {
       resize: vertical;
@@ -352,15 +304,9 @@
       gap: 10px;
       margin-top: 20px;
     }
-    .btn-cancel {
-      background: #95a5a6;
-    }
-    .btn-cancel:hover {
-      background: #7f8c8d;
-    }
-    .btn-save {
-      background: #27ae60;
-    }
+    .btn-cancel { background: #95a5a6; }
+    .btn-save { background: #27ae60; }
+    
     .summary-cards {
       display: flex;
       flex-wrap: wrap;
@@ -371,26 +317,19 @@
     .card {
       background: white;
       border-radius: 8px;
-      padding: 15px;
+      padding: 12px;
       box-shadow: 0 2px 5px rgba(0,0,0,0.1);
       flex: 1;
-      min-width: 120px;
+      min-width: 100px;
       text-align: center;
       cursor: pointer;
     }
-    .card h3 {
-      color: #7f8c8d;
-      font-size: 12px;
-      margin-bottom: 5px;
-    }
-    .card p {
-      font-size: 22px;
-      font-weight: bold;
-      color: #2c3e50;
-    }
+    .card h3 { font-size: 11px; margin-bottom: 5px; color: #7f8c8d; }
+    .card p { font-size: 20px; font-weight: bold; color: #2c3e50; }
     .card.pendentes p { color: #e74c3c; }
     .card.resolvidos p { color: #27ae60; }
     .card.emrota p { color: #f39c12; }
+    
     .user-info {
       display: flex;
       justify-content: space-between;
@@ -405,10 +344,8 @@
       margin: 0;
       padding: 5px 15px;
     }
-    .required-field::after {
-      content: " *";
-      color: red;
-    }
+    .required-field::after { content: " *"; color: red; }
+    
     .batch-actions {
       display: flex;
       gap: 10px;
@@ -419,13 +356,8 @@
       align-items: center;
       flex-wrap: wrap;
     }
-    .batch-actions button {
-      width: auto;
-      margin-bottom: 0;
-    }
-    .select-all-btn {
-      background: #34495e;
-    }
+    .batch-actions button { width: auto; margin-bottom: 0; }
+    .select-all-btn { background: #34495e; }
     .counter {
       background: #27ae60;
       color: white;
@@ -435,17 +367,6 @@
       font-weight: bold;
       display: inline-block;
       margin-left: 10px;
-      white-space: nowrap;
-    }
-    .pending-alert {
-      background-color: #ffcccc;
-      color: #c0392b;
-      padding: 8px;
-      border-radius: 8px;
-      margin-top: 10px;
-      font-weight: bold;
-      text-align: center;
-      font-size: 13px;
     }
     
     .baixar-section {
@@ -459,20 +380,9 @@
       gap: 15px;
       flex-wrap: wrap;
     }
-    .baixar-section h4 {
-      color: #2e7d32;
-      margin: 0;
-      font-size: 14px;
-    }
-    .baixar-section input {
-      flex: 2;
-      min-width: 200px;
-      margin-bottom: 0;
-    }
-    .baixar-section button {
-      width: auto;
-      margin-bottom: 0;
-    }
+    .baixar-section h4 { color: #2e7d32; margin: 0; font-size: 14px; }
+    .baixar-section input { flex: 2; min-width: 200px; margin-bottom: 0; }
+    .baixar-section button { width: auto; margin-bottom: 0; }
     .baixar-mensagem {
       background: #c8e6c9;
       color: #2e7d32;
@@ -482,7 +392,7 @@
       align-items: center;
       gap: 10px;
     }
-
+    
     .admin-tabs {
       display: flex;
       gap: 5px;
@@ -493,25 +403,18 @@
       background: #ecf0f1;
       color: #2c3e50;
       border: none;
-      padding: 10px 20px;
+      padding: 8px 15px;
       cursor: pointer;
       font-weight: bold;
       border-radius: 5px 5px 0 0;
       width: auto;
       margin-bottom: 0;
+      font-size: 12px;
     }
-    .tab-btn.active {
-      background: #3498db;
-      color: white;
-    }
-    .tab-content {
-      display: none;
-      padding: 15px 0;
-    }
-    .tab-content.active {
-      display: block;
-    }
-
+    .tab-btn.active { background: #3498db; color: white; }
+    .tab-content { display: none; padding: 15px 0; }
+    .tab-content.active { display: block; }
+    
     .admin-panel {
       background: white;
       margin: 15px 20px;
@@ -520,9 +423,12 @@
       border: 2px solid #3498db;
       display: none;
     }
-    .admin-panel h3 {
-      color: #2c3e50;
+    .admin-panel h3 { font-size: 16px; margin-bottom: 15px; }
+    .admin-actions {
+      display: flex;
+      gap: 10px;
       margin-bottom: 15px;
+      flex-wrap: wrap;
     }
     .items-list, .clientes-list {
       margin-top: 15px;
@@ -540,86 +446,48 @@
       flex-wrap: wrap;
       gap: 10px;
     }
-    .item-info, .cliente-info {
-      flex: 2;
-    }
-    .item-actions button, .cliente-actions button {
-      width: auto;
-      margin: 0;
-      padding: 4px 8px;
-      font-size: 11px;
-    }
     .users-list {
       margin-top: 15px;
-      max-height: 400px;
+      max-height: 500px;
       overflow-y: auto;
     }
     .user-item {
       display: flex;
       justify-content: space-between;
-      align-items: center;
-      padding: 10px;
+      align-items: flex-start;
+      padding: 12px;
       border-bottom: 1px solid #ddd;
       flex-wrap: wrap;
       gap: 10px;
+      background: #f9f9f9;
+    }
+    .user-info-main {
+      min-width: 150px;
     }
     .user-permissions {
       display: flex;
       flex-wrap: wrap;
       gap: 8px;
       align-items: center;
-      max-width: 100%;
+      flex: 2;
     }
     .perm-checkbox {
       display: flex;
       align-items: center;
       gap: 4px;
       font-size: 11px;
-      background: #f5f5f5;
-      padding: 3px 8px;
-      border-radius: 15px;
+      background: white;
+      padding: 4px 10px;
+      border-radius: 20px;
+      border: 1px solid #ddd;
     }
-    .perm-checkbox input {
-      width: 14px;
-      height: 14px;
-      margin: 0;
-    }
-    .user-actions button {
-      width: auto;
-      margin: 0;
-      padding: 4px 8px;
-      font-size: 11px;
-    }
+    .perm-checkbox input { width: 14px; height: 14px; margin: 0; }
+    .user-actions button { width: auto; margin: 2px; padding: 4px 10px; font-size: 11px; }
     .btn-delete-user { background: #e74c3c; }
     .btn-reset-password { background: #f39c12; }
-    .btn-disconnect-user { background: #e67e22; }
     .admin-badge { background: #e74c3c; color: white; padding: 2px 8px; border-radius: 12px; font-size: 10px; margin-left: 8px; }
     .user-badge { background: #3498db; color: white; padding: 2px 8px; border-radius: 12px; font-size: 10px; margin-left: 8px; }
-    .session-active-badge { background: #27ae60; color: white; padding: 2px 8px; border-radius: 12px; font-size: 10px; margin-left: 8px; }
-
-    .item-pendencia-row {
-      display: flex;
-      gap: 10px;
-      margin-bottom: 10px;
-      align-items: center;
-      flex-wrap: wrap;
-    }
-    .item-pendencia-row input {
-      flex: 1;
-      margin-bottom: 0;
-    }
-    .btn-add-item {
-      background: #27ae60;
-      width: auto;
-      margin: 0;
-      padding: 8px 15px;
-    }
-    .btn-remove-item {
-      background: #e74c3c;
-      width: auto;
-      margin: 0;
-      padding: 8px 15px;
-    }
+    
     .items-list-pendencia {
       margin-top: 10px;
       border: 1px solid #ddd;
@@ -636,48 +504,18 @@
       border-bottom: 1px solid #eee;
       font-size: 12px;
     }
-
-    .batch-delete-actions {
-      display: flex;
-      gap: 10px;
-      margin: 10px 0;
-      flex-wrap: wrap;
-    }
-    .btn-batch-delete {
-      background: #c0392b;
+    .btn-add-item {
+      background: #27ae60;
       width: auto;
+      padding: 8px 15px;
     }
-
-    @media print {
-      body * {
-        visibility: hidden;
-      }
-      .print-document, .print-document * {
-        visibility: visible;
-      }
-      .print-document {
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        margin: 0;
-        padding: 20px;
-      }
-      .no-print {
-        display: none;
-      }
-    }
-
+    
     @media (max-width: 768px) {
-      .controls, .import-area, .client-search { flex-direction: column; }
-      .batch-actions { flex-direction: column; align-items: stretch; }
+      .controls, .batch-actions, .import-area { flex-direction: column; }
       .batch-actions button { width: 100%; }
-      .user-permissions { justify-content: center; }
-      .user-item { flex-direction: column; align-items: stretch; }
-      .baixar-section { flex-direction: column; align-items: stretch; }
-      .baixar-section button { width: 100%; }
+      .user-permissions { justify-content: flex-start; }
     }
-
+    
     .login-container {
       max-width: 450px;
       margin: 50px auto;
@@ -700,53 +538,15 @@
       border-radius: 5px;
       margin-bottom: 20px;
       display: none;
-    }
-    .success-message {
-      background: #27ae60;
-      color: white;
-      padding: 10px;
-      border-radius: 5px;
-      margin-bottom: 20px;
-      display: none;
+      font-size: 14px;
+      text-align: center;
     }
     .change-password-link {
       text-align: center;
       margin-top: 15px;
       font-size: 12px;
     }
-    .change-password-link a {
-      color: #3498db;
-      text-decoration: none;
-      cursor: pointer;
-    }
-    .change-password-link a:hover {
-      text-decoration: underline;
-    }
-
-    .sessoes-list {
-      margin-top: 15px;
-      max-height: 400px;
-      overflow-y: auto;
-      border: 1px solid #ddd;
-      border-radius: 5px;
-    }
-    .sessao-row {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 12px;
-      border-bottom: 1px solid #eee;
-      flex-wrap: wrap;
-      gap: 10px;
-    }
-    .sessao-info {
-      flex: 2;
-    }
-    .sessao-actions button {
-      width: auto;
-      margin: 0;
-      padding: 6px 12px;
-    }
+    .change-password-link a { color: #3498db; text-decoration: none; cursor: pointer; }
   </style>
 
   <script src="https://cdn.sheetjs.com/xlsx-0.20.2/package/dist/xlsx.full.min.js"></script>
@@ -759,13 +559,11 @@
 <div id="login-screen">
   <div class="login-container">
     <div class="login-header">
-      <h2 style="margin:0">DISLAM</h2>
+      <h2>DISLAM</h2>
       <p>Controle de Pendências</p>
     </div>
     <div class="login-body">
       <div id="login-error" class="error-message"></div>
-      <div id="login-success" class="success-message"></div>
-      
       <form id="login-form">
         <div class="form-group">
           <label>Usuário:</label>
@@ -777,34 +575,31 @@
         </div>
         <button type="submit" class="login-btn">Entrar</button>
       </form>
-      
       <div class="change-password-link">
-        <a id="show-change-password"> Alterar minha senha</a>
+        <a id="show-change-password">Alterar minha senha</a>
       </div>
-      
-      <form id="change-password-form" style="display: none; margin-top: 20px; border-top: 1px solid #ddd; padding-top: 20px;">
-        <h4 style="margin-bottom: 15px; color: #2c3e50;">Alterar Senha</h4>
+      <form id="change-password-form" style="display: none; margin-top: 20px;">
+        <h4>Alterar Senha</h4>
         <div class="form-group">
           <label>Usuário:</label>
-          <input type="text" id="change-username" placeholder="Digite seu usuário" required />
+          <input type="text" id="change-username" required />
         </div>
         <div class="form-group">
           <label>Senha Atual:</label>
-          <input type="password" id="current-password" placeholder="Digite sua senha atual" required />
+          <input type="password" id="current-password" required />
         </div>
         <div class="form-group">
           <label>Nova Senha:</label>
-          <input type="password" id="new-password" placeholder="Digite a nova senha" required />
+          <input type="password" id="new-password" required />
         </div>
         <div class="form-group">
           <label>Confirmar Nova Senha:</label>
-          <input type="password" id="confirm-new-password" placeholder="Confirme a nova senha" required />
+          <input type="password" id="confirm-new-password" required />
         </div>
         <div id="change-password-error" class="error-message"></div>
-        <div id="change-password-success" class="success-message"></div>
-        <div class="form-actions" style="margin-top: 15px;">
-          <button type="button" id="cancel-change-password" class="btn-cancel" style="width: auto;">Cancelar</button>
-          <button type="submit" id="submit-change-password" class="btn-save" style="width: auto;">Alterar Senha</button>
+        <div class="form-actions">
+          <button type="button" id="cancel-change-password" class="btn-cancel">Cancelar</button>
+          <button type="submit" class="btn-save">Alterar</button>
         </div>
       </form>
     </div>
@@ -815,98 +610,66 @@
 <div id="main-system" style="display: none;">
   <div class="container">
     <header>
-      <div class="logo-area">
-        <div class="logo-text">
-          <h1>DISLAM Distribuidora</h1>
-          <p>Sistema de Controle de Pendências</p>
-        </div>
+      <div class="logo-text">
+        <h1>DISLAM Distribuidora</h1>
+        <p>Sistema de Controle de Pendências</p>
       </div>
     </header>
 
+    <!-- Painel Admin -->
     <div id="admin-panel" class="admin-panel">
-      <h3> Painel de Administração</h3>
+      <h3>Painel de Administração</h3>
       <div class="admin-tabs">
-        <button class="tab-btn active" data-tab="clientes-tab">📋 Clientes Cadastrados</button>
-        <button class="tab-btn" data-tab="itens-tab">📦 Itens Cadastrados</button>
-        <button class="tab-btn" data-tab="usuarios-tab">👥 Gerenciar Usuários</button>
-        <button class="tab-btn" data-tab="sessoes-tab">🔌 Sessões Ativas</button>
+        <button class="tab-btn active" data-tab="clientes-tab">📋 Clientes</button>
+        <button class="tab-btn" data-tab="itens-tab">📦 Itens</button>
+        <button class="tab-btn" data-tab="usuarios-tab">👥 Usuários</button>
+        <button class="tab-btn" data-tab="sessoes-tab">🔌 Sessões</button>
       </div>
-
+      
       <div id="clientes-tab" class="tab-content active">
-        <h4> Clientes Cadastrados</h4>
-        <div style="display: flex; gap: 10px; margin-bottom: 10px; flex-wrap: wrap;">
-          <input type="text" id="search-cliente-admin" placeholder="Buscar cliente por código ou nome..." style="flex:2;">
-        </div>
-        <div class="batch-delete-actions">
-          <button id="select-all-clientes-btn" class="btn-batch-delete" style="background:#34495e;">Selecionar Todos Clientes</button>
-          <button id="deselect-all-clientes-btn" class="btn-batch-delete" style="background:#34495e;">Desmarcar Todos</button>
-          <button id="delete-selected-clientes-btn" class="btn-batch-delete" style="background:#c0392b;">Excluir Selecionados</button>
-          <button id="delete-all-clientes-btn" class="btn-batch-delete" style="background:#c0392b;">Excluir Todos os Clientes</button>
+        <div class="admin-actions">
+          <button id="delete-all-clientes-btn" class="btn-danger"> Excluir TODOS os Clientes</button>
         </div>
         <div id="clientes-list" class="clientes-list"></div>
       </div>
-
+      
       <div id="itens-tab" class="tab-content">
-        <h4>📦 Itens/Produtos Cadastrados</h4>
-        <div style="display: flex; gap: 10px; margin-bottom: 10px; flex-wrap: wrap;">
-          <input type="text" id="search-item-admin" placeholder="Buscar item por código ou descrição..." style="flex:2;">
-        </div>
-        <div class="batch-delete-actions">
-          <button id="select-all-itens-btn" class="btn-batch-delete" style="background:#34495e;">Selecionar Todos Itens</button>
-          <button id="deselect-all-itens-btn" class="btn-batch-delete" style="background:#34495e;">Desmarcar Todos</button>
-          <button id="delete-selected-itens-btn" class="btn-batch-delete" style="background:#c0392b;">Excluir Selecionados</button>
-          <button id="delete-all-itens-btn" class="btn-batch-delete" style="background:#c0392b;">Excluir TODOS os Itens</button>
+        <div class="admin-actions">
+          <button id="delete-all-itens-btn" class="btn-danger"> Excluir TODOS os Itens</button>
         </div>
         <div id="items-list" class="items-list"></div>
       </div>
-
+      
       <div id="usuarios-tab" class="tab-content">
-        <h4>👥 Gerenciar Usuários</h4>
         <form id="create-user-form" style="display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 15px;">
-          <input type="text" id="new-username" placeholder="Usuário" required style="flex:1">
-          <input type="password" id="new-password" placeholder="Senha" required style="flex:1">
+          <input type="text" id="new-username" placeholder="Usuário" style="flex:1">
+          <input type="password" id="new-password" placeholder="Senha" style="flex:1">
           <select id="new-role" style="width: auto;">
-            <option value="user">Usuário Comum</option>
-            <option value="admin">Administrador</option>
+            <option value="user">Usuário</option>
+            <option value="admin">Admin</option>
           </select>
-          <button type="submit" style="width: auto; background: #27ae60;">Criar</button>
+          <button type="submit">Criar</button>
         </form>
         <div id="users-list" class="users-list"></div>
       </div>
-
+      
       <div id="sessoes-tab" class="tab-content">
-        <h4>🔌 Sessões Ativas de Usuários</h4>
-        <p style="font-size: 12px; color: #666; margin-bottom: 10px;">Aqui você pode visualizar e desconectar usuários que estão logados.</p>
-        <div id="sessoes-list" class="sessoes-list"></div>
+        <div id="sessoes-list" class="users-list"></div>
       </div>
     </div>
 
+    <!-- Importação de Clientes e Itens -->
     <div id="import-section" class="import-section">
       <div class="import-title">📥 IMPORTAR CLIENTES</div>
       <div class="import-area">
-        <div class="import-group">
-          <label>Formato:</label>
-          <select id="client-format">
-            <option value="excel">📊 Excel (XLSX / XLS)</option>
-            <option value="csv">📄 CSV (separado por ;)</option>
-          </select>
-        </div>
         <div class="import-group">
           <label>Arquivo de Clientes:</label>
           <input type="file" id="client-file" accept=".xlsx,.xls,.csv">
         </div>
         <button class="btn-import btn-import-clientes" id="import-clientes-btn">📋 Importar Clientes</button>
       </div>
-
       <div class="import-title">📦 IMPORTAR ITENS</div>
       <div class="import-area">
-        <div class="import-group">
-          <label>Formato:</label>
-          <select id="item-format">
-            <option value="excel">📊 Excel (XLSX / XLS)</option>
-            <option value="csv">📄 CSV (separado por ;)</option>
-          </select>
-        </div>
         <div class="import-group">
           <label>Arquivo de Itens:</label>
           <input type="file" id="item-file" accept=".xlsx,.xls,.csv">
@@ -915,54 +678,96 @@
       </div>
     </div>
 
-    <div id="client-search-section" class="client-search">
-      <input type="text" id="client-code" placeholder="Digite o CÓDIGO do cliente" list="client-list">
-      <datalist id="client-list"></datalist>
-      <button id="search-client">🔍 Buscar Cliente</button>
-      <div id="client-counter" class="counter">📊 0 clientes</div>
-    </div>
-
     <div class="baixar-section">
-      <h4> BAIXAR PENDÊNCIA</h4>
+      <h4>BAIXAR PENDÊNCIA</h4>
       <input type="text" id="baixar-numero" placeholder="Digite o NÚMERO da pendência">
-      <button id="btn-baixar-pendencia" class="btn-baixar"> Baixar Pendência</button>
+      <button id="btn-baixar-pendencia" class="btn-baixar">Baixar Pendência</button>
       <div id="baixar-mensagem" class="baixar-mensagem"></div>
     </div>
 
-    <div id="client-info" class="client-info">
-      <h3>📋 Informações do Cliente</h3>
-      <div class="info-grid" id="client-details"></div>
-      <div id="pending-alert" class="pending-alert" style="display: none;"></div>
-    </div>
-
     <div class="user-info">
-      <span>👤 <span id="current-user">Usuário</span> <span id="user-role"></span></span>
+      <span>👤 <span id="current-user"></span> <span id="user-role"></span></span>
       <button class="btn-logout" id="logout-button">Sair</button>
     </div>
 
     <div class="summary-cards">
-      <div class="card total" data-filter="todos"><h3>📊 Total</h3><p id="total-count">0</p></div>
-      <div class="card pendentes" data-filter="pendente"><h3>⏳ Pendentes</h3><p id="pending-count">0</p></div>
-      <div class="card emrota" data-filter="emrota"><h3>🚚 Em Rota</h3><p id="emrota-count">0</p></div>
-      <div class="card resolvidos" data-filter="resolvido"><h3>✅ Resolvidas</h3><p id="resolved-count">0</p></div>
+      <div class="card total"><h3>📊 Total</h3><p id="total-count">0</p></div>
+      <div class="card pendentes"><h3>⏳ Pendentes</h3><p id="pending-count">0</p></div>
+      <div class="card emrota"><h3>🚚 Em Rota</h3><p id="emrota-count">0</p></div>
+      <div class="card resolvidos"><h3>✅ Resolvidas</h3><p id="resolved-count">0</p></div>
     </div>
 
-    <div class="controls">
-      <div class="filter-section"><h3>Ordenar</h3><div class="sort-buttons"><button class="sort-btn" data-sort="numero">Nº Pendência</button><button class="sort-btn" data-sort="cliente">Cliente</button><button class="sort-btn" data-sort="cidade">Cidade</button></div></div>
-      <div class="filter-section"><h3>Filtrar Situação</h3><select id="status-filter"><option value="todos">Todos</option><option value="pendente">Pendente</option><option value="emrota">Em Rota</option><option value="resolvido">Resolvido</option></select></div>
-      <div class="filter-section"><h3>Filtrar Motivo</h3><select id="motivo-filter"><option value="todos">Todos</option><option value="Sem Motivo">Sem Motivo</option><option value="Vendedor">Vendedor</option><option value="Devolucao">Devolução</option><option value="Cliente">Cliente</option><option value="Em Rota">Em Rota</option><option value="Interno">Interno</option><option value="Motorista">Motorista</option></select></div>
-      <div class="filter-section"><h3>Filtrar Responsável</h3><select id="responsavel-filter"><option value="todos">Todos</option><option value="NA BASE">NA BASE</option><option value="JONJON">JONJON</option><option value="CELSO">CELSO</option><option value="JAMILSON">JAMILSON</option><option value="RAONEY">RAONEY</option><option value="EDUARDO">EDUARDO</option><option value="RENAN">RENAN</option><option value="EULLER">EULLER</option><option value="THIAGO">THIAGO</option><option value="BRUNO">BRUNO</option><option value="ITALO">ITALO</option><option value="JAIRO">JAIRO</option><option value="SR. CARLOS (AGR)">SR. CARLOS (AGR)</option><option value="KEINHO (AGR)">KEINHO (AGR)</option></select></div>
-      <div class="filter-section"><h3>Filtrar Resolvidas</h3><div class="resolved-filter"><label><input type="checkbox" id="show-resolved" checked> Mostrar resolvidas</label><label><input type="checkbox" id="show-unresolved" checked> Mostrar não resolvidas</label></div></div>
-      <div class="filter-section"><h3>Buscar</h3><input type="text" id="search-input" placeholder="Digite para buscar..."></div>
-      <div class="filter-section"><h3>Ações</h3><button class="btn-add" id="add-button"> Nova Pendência</button><button class="btn-export" id="export-button">Exportar</button><button class="btn-print-selected" id="print-selected-btn">🖨️ Imprimir Selecionadas</button></div>
+    <!-- SEÇÃO DE FILTROS E ORDENAÇÃO -->
+    <div class="collapsible-section">
+      <div class="section-header" id="filter-header">
+        <span>🔍 FILTROS</span>
+        <span class="toggle-icon">▼</span>
+      </div>
+      <div class="section-content" id="filter-content">
+        <div class="controls">
+          <div class="filter-section">
+            <h3 id="sort-header">📊 ORDENAR <span class="filter-toggle-icon">▼</span></h3>
+            <div class="filter-options" id="sort-options">
+              <div class="sort-buttons">
+                <button class="sort-btn" data-sort="numero">Nº Pendência</button>
+                <button class="sort-btn" data-sort="cliente">Cliente</button>
+                <button class="sort-btn" data-sort="cidade">Cidade</button>
+                <button class="sort-btn" data-sort="dataFalta">Data</button>
+                <button class="sort-btn" data-sort="responsavel">Responsável</button>
+                <button class="sort-btn" data-sort="motivo">Motivo</button>
+              </div>
+            </div>
+          </div>
+          <div class="filter-section">
+            <h3>Filtrar Situação</h3>
+            <select id="status-filter">
+              <option value="todos">Todos</option>
+              <option value="pendente">Pendente</option>
+              <option value="emrota">Em Rota</option>
+              <option value="resolvido">Resolvido</option>
+            </select>
+          </div>
+          <div class="filter-section">
+            <h3>Filtrar Motivo</h3>
+            <select id="motivo-filter">
+              <option value="todos">Todos</option>
+            </select>
+          </div>
+          <div class="filter-section">
+            <h3>Filtrar Responsável</h3>
+            <select id="responsavel-filter">
+              <option value="todos">Todos</option>
+            </select>
+          </div>
+          <div class="filter-section">
+            <h3>Buscar</h3>
+            <input type="text" id="search-input" placeholder="Digite para buscar...">
+          </div>
+          <div class="filter-section">
+            <h3>Ações</h3>
+            <button class="btn-add" id="add-button">Nova Pendência</button>
+            <button class="btn-export" id="export-button">Exportar</button>
+            <button class="btn-print-selected" id="print-selected-btn">🖨️ Imprimir Selecionadas</button>
+          </div>
+        </div>
+      </div>
     </div>
 
-    <div id="batch-actions" class="batch-actions">
-      <button class="select-all-btn" id="select-all-btn">Selecionar Todos</button>
-      <button class="select-all-btn" id="deselect-all-btn">Desmarcar Todos</button>
-      <button class="btn-delete-selected" id="delete-selected-btn">Excluir Selecionadas</button>
-      <button class="btn-delete-all" id="delete-all-btn">Excluir TODAS Pendências</button>
-      <span id="selected-count">0 selecionada(s)</span>
+    <!-- SEÇÃO DE AÇÕES EM MASSA MINIMIZÁVEL -->
+    <div class="collapsible-section">
+      <div class="section-header" id="batch-header">
+        <span>📦 AÇÕES EM MASSA</span>
+        <span class="toggle-icon">▼</span>
+      </div>
+      <div class="section-content" id="batch-content">
+        <div id="batch-actions" class="batch-actions">
+          <button class="select-all-btn" id="select-all-btn">Selecionar Todos</button>
+          <button class="select-all-btn" id="deselect-all-btn">Desmarcar Todos</button>
+          <button class="btn-delete-selected" id="delete-selected-btn">Excluir Selecionadas</button>
+          <button class="btn-delete-all" id="delete-all-btn">Excluir TODAS Pendências</button>
+          <span id="selected-count">0 selecionada(s)</span>
+        </div>
+      </div>
     </div>
 
     <div class="table-container">
@@ -988,45 +793,40 @@
     </div>
   </div>
 
+  <!-- MODAL -->
   <div class="modal" id="modal">
     <div class="modal-content">
       <h2 id="modal-title">Nova Pendência</h2>
       <form id="pendencia-form">
         <div class="form-row">
-          <div class="form-group"><label>Código do Cliente:</label><input type="text" id="cliente-codigo" placeholder="Digite o código" list="client-list-modal" autocomplete="off"></div>
-          <div class="form-group"><label class="required-field">Nome do Cliente:</label><input type="text" id="cliente-nome" placeholder="Nome do cliente" required></div>
+          <div class="form-group"><label>Código do Cliente:</label><input type="text" id="cliente-codigo" list="client-list-modal"></div>
+          <div class="form-group"><label class="required-field">Nome do Cliente:</label><input type="text" id="cliente-nome" required></div>
         </div>
         <div class="form-row">
-          <div class="form-group"><label>Nome Fantasia:</label><input type="text" id="cliente-fantasia" placeholder="Nome fantasia"></div>
-          <div class="form-group"><label>Telefone para Contato:</label><input type="text" id="telefone-input" placeholder="(00) 00000-0000"></div>
+          <div class="form-group"><label>Nome Fantasia:</label><input type="text" id="cliente-fantasia"></div>
+          <div class="form-group"><label>Telefone:</label><input type="text" id="telefone-input"></div>
         </div>
         <div class="form-row">
-          <div class="form-group"><label>Endereço:</label><input type="text" id="endereco-input" placeholder="Endereço completo"></div>
-          <div class="form-group"><label>Cidade:</label><input type="text" id="cidade-input" placeholder="Cidade"></div>
+          <div class="form-group"><label>Endereço:</label><input type="text" id="endereco-input"></div>
+          <div class="form-group"><label>Cidade:</label><input type="text" id="cidade-input"></div>
         </div>
         <div class="form-row">
-          <div class="form-group"><label>Bairro:</label><input type="text" id="bairro-input" placeholder="Bairro"></div>
+          <div class="form-group"><label>Bairro:</label><input type="text" id="bairro-input"></div>
         </div>
         <div class="form-row">
           <div class="form-group"><label class="required-field">Data da Falta:</label><input type="date" id="data-falta-input" required></div>
-          <div class="form-group"><label class="required-field">Nº Pendência:</label><input type="text" id="numero-pendencia-input" placeholder="Número" required></div>
+          <div class="form-group"><label class="required-field">Nº Pendência:</label><input type="text" id="numero-pendencia-input" required></div>
         </div>
         <div class="form-row">
-          <div class="form-group"><label class="required-field">Motivo:</label>
+          <div class="form-group">
+            <label class="required-field">Motivo:</label>
             <select id="motivo-input" required>
               <option value="">Selecione</option>
-              <option value="Sem Motivo">Sem Motivo</option>
-              <option value="Vendedor">Vendedor</option>
-              <option value="Devolucao">Devolução</option>
-              <option value="Cliente">Cliente</option>
-              <option value="Em Rota">Em Rota</option>
-              <option value="Interno">Interno</option>
-              <option value="Motorista">Motorista</option>
             </select>
           </div>
-          <div class="form-group"><label class="required-field">Tipo de Serviço:</label>
+          <div class="form-group">
+            <label class="required-field">Tipo de Serviço:</label>
             <select id="tipo-servico-input" required>
-              <option value="">Selecione</option>
               <option value="SOMENTE ENTREGAR">📦 SOMENTE ENTREGAR</option>
               <option value="SOMENTE RECOLHER">🔄 SOMENTE RECOLHER</option>
               <option value="RECOLHER E ENTREGAR">📦🔄 RECOLHER E ENTREGAR</option>
@@ -1036,31 +836,43 @@
         
         <div id="edit-fields" style="display: none;">
           <div class="form-row">
-            <div class="form-group"><label>Responsável:</label><select id="responsavel-input"><option value="">Selecione</option><option value="NA BASE">NA BASE</option><option value="JONJON">JONJON</option><option value="CELSO">CELSO</option><option value="JAMILSON">JAMILSON</option><option value="RAONEY">RAONEY</option><option value="EDUARDO">EDUARDO</option><option value="RENAN">RENAN</option><option value="EULLER">EULLER</option><option value="THIAGO">THIAGO</option><option value="BRUNO">BRUNO</option><option value="ITALO">ITALO</option><option value="JAIRO">JAIRO</option><option value="SR. CARLOS (AGR)">SR. CARLOS (AGR)</option><option value="KEINHO (AGR)">KEINHO (AGR)</option></select></div>
-            <div class="form-group"><label>Situação:</label><select id="status-input"><option value="pendente">⏳ Pendente</option><option value="emrota">🚚 Em Rota</option><option value="resolvido">✅ Resolvido</option></select></div>
+            <div class="form-group">
+              <label>Responsável:</label>
+              <select id="responsavel-input">
+                <option value="">Selecione</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Situação:</label>
+              <select id="status-input">
+                <option value="pendente">Pendente</option>
+                <option value="emrota">Em Rota</option>
+                <option value="resolvido">Resolvido</option>
+              </select>
+            </div>
           </div>
         </div>
         
         <div class="form-group">
           <label>Itens da Pendência:</label>
           <div style="display: flex; gap: 10px; margin-bottom: 10px;">
-            <input type="text" id="item-codigo-input" placeholder="Código do item" style="flex:1" list="item-list-modal" autocomplete="off">
-            <input type="text" id="item-descricao-input" placeholder="Descrição do item" style="flex:2">
-            <input type="text" id="item-quantidade-input" placeholder="Quantidade (ex: 7UND)" style="flex:1">
-            <button type="button" id="add-item-btn" class="btn-add-item" style="width: auto;">➕ Adicionar</button>
+            <input type="text" id="item-codigo-input" placeholder="Código do item" list="item-list-modal" style="flex:1">
+            <input type="text" id="item-descricao-input" placeholder="Descrição" style="flex:2">
+            <input type="text" id="item-quantidade-input" placeholder="Quantidade" style="flex:1">
+            <button type="button" id="add-item-btn" class="btn-add-item">➕ Adicionar</button>
           </div>
           <datalist id="item-list-modal"></datalist>
           <div id="itens-list-pendencia" class="items-list-pendencia">
-            <div style="color: #999; text-align: center; padding: 20px;">Nenhum item adicionado</div>
+            <div style="color:#999;text-align:center;">Nenhum item adicionado</div>
           </div>
         </div>
 
-        <div class="form-group"><label>Observação:</label><textarea id="observacao-input" rows="4" placeholder="Digite a observação..."></textarea></div>
+        <div class="form-group"><label>Observação:</label><textarea id="observacao-input" rows="3"></textarea></div>
         
         <div class="form-actions">
           <button type="button" class="btn-cancel" id="cancel-button">Cancelar</button>
           <button type="button" id="print-button" class="btn-print">🖨️ Imprimir</button>
-          <button type="submit" class="btn-save" id="save-button">Salvar</button>
+          <button type="submit" class="btn-save">Salvar</button>
         </div>
       </form>
     </div>
@@ -1082,10 +894,9 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
 
-// ========== VARIÁVEIS GLOBAIS ==========
+// VARIÁVEIS GLOBAIS
 let sessionId = null;
 let inactivityTimer = null;
-let sessaoListenerRef = null;
 let currentUser = null;
 let currentPermissions = {};
 let clientesDB = {};
@@ -1096,43 +907,50 @@ let currentSort = { field: 'numero', order: 'asc' };
 let selectedItems = new Set();
 let currentPendenciaItens = [];
 let nextPendenciaNumero = 1;
-const INACTIVITY_TIMEOUT = 5 * 60 * 1000;
+const INACTIVITY_TIMEOUT = 20 * 60 * 1000;
 
-// ========== USUÁRIOS INICIAIS ==========
+// Listas dinâmicas
+let motivosList = ['Sem Motivo', 'Vendedor', 'Devolucao', 'Cliente', 'Em Rota', 'Interno', 'Motorista'];
+let responsaveisList = ['NA BASE', 'JONJON', 'CELSO', 'JAMILSON', 'RAONEY', 'EDUARDO', 'RENAN', 'EULLER', 'THIAGO', 'BRUNO', 'ITALO', 'JAIRO'];
+
+// Lista de permissões disponíveis
+const permissoesLista = [
+  { id: 'create', label: '📝 Criar Pendência' },
+  { id: 'edit', label: '✏️ Editar Pendência' },
+  { id: 'delete', label: '🗑️ Excluir Pendência' },
+  { id: 'changeStatus', label: '🔄 Alterar Status' },
+  { id: 'export', label: '📎 Exportar Dados' },
+  { id: 'print', label: '🖨️ Imprimir' },
+  { id: 'importClientes', label: '📥 Importar Clientes' },
+  { id: 'importItens', label: '📦 Importar Itens' },
+  { id: 'batchDelete', label: '📦 Excluir Lote' },
+  { id: 'deleteAll', label: '⚠️ Excluir Todas' },
+  { id: 'manageUsers', label: '👥 Gerenciar Usuários' },
+  { id: 'baixarPendencia', label: '✅ Baixar Pendência' }
+];
+
+// USUÁRIOS INICIAIS
 const usuariosIniciais = {
   'admin': { password: '123456', name: 'Administrador', role: 'admin', permissions: { 
     create: true, edit: true, delete: true, changeStatus: true, export: true, 
     importClientes: true, importItens: true, batchDelete: true, deleteAll: true, 
-    manageUsers: true, viewClientes: true, viewPendencias: true, searchCliente: true,
-    print: true, deleteSelectedClientes: true, deleteAllClientes: true,
-    deleteSelectedItens: true, deleteAllItens: true, showSearchCliente: true, baixarPendencia: true
+    manageUsers: true, print: true, baixarPendencia: true
   } },
   'xandy': { password: '123456', name: 'Alexandre', role: 'admin', permissions: { 
     create: true, edit: true, delete: true, changeStatus: true, export: true, 
     importClientes: true, importItens: true, batchDelete: true, deleteAll: true, 
-    manageUsers: true, viewClientes: true, viewPendencias: true, searchCliente: true,
-    print: true, deleteSelectedClientes: true, deleteAllClientes: true,
-    deleteSelectedItens: true, deleteAllItens: true, showSearchCliente: true, baixarPendencia: true
+    manageUsers: true, print: true, baixarPendencia: true
   } },
   'edi': { password: '123456', name: 'Ediclecio', role: 'user', permissions: { 
     create: true, edit: false, delete: false, changeStatus: true, export: true, 
     importClientes: false, importItens: false, batchDelete: false, deleteAll: false, 
-    manageUsers: false, viewClientes: true, viewPendencias: true, searchCliente: true,
-    print: true, deleteSelectedClientes: false, deleteAllClientes: false,
-    deleteSelectedItens: false, deleteAllItens: false, showSearchCliente: false, baixarPendencia: true
-  } },
-  'raiane': { password: '123456', name: 'Raiane', role: 'user', permissions: { 
-    create: true, edit: true, delete: false, changeStatus: true, export: false, 
-    importClientes: false, importItens: false, batchDelete: false, deleteAll: false, 
-    manageUsers: false, viewClientes: true, viewPendencias: true, searchCliente: true,
-    print: false, deleteSelectedClientes: false, deleteAllClientes: false,
-    deleteSelectedItens: false, deleteAllItens: false, showSearchCliente: true, baixarPendencia: true
+    manageUsers: false, print: true, baixarPendencia: true
   } }
 };
 
 let users = JSON.parse(JSON.stringify(usuariosIniciais));
 
-// ========== REFERÊNCIAS FIREBASE ==========
+// REFERÊNCIAS
 const clientesRef = db.ref('clientes');
 const itensRef = db.ref('itens');
 const pendenciasRef = db.ref('pendencias');
@@ -1140,622 +958,64 @@ const usersRef = db.ref('users');
 const configRef = db.ref('config');
 const sessoesRef = db.ref('sessoes');
 
-// ========== FUNÇÕES DE SESSÃO (CORRIGIDAS) ==========
-function gerarSessionId() {
-  return Date.now() + '-' + Math.random().toString(36).substr(2, 9);
-}
-
-function registrarSessao(username, sid) {
-  sessoesRef.child(username).set({
-    sessionId: sid,
-    ativa: true,
-    inicio: Date.now(),
-    ultimaAtividade: Date.now(),
-    userAgent: navigator.userAgent
-  });
-}
-
-function removerSessao(username) {
-  if (username) {
-    sessoesRef.child(username).remove();
-  }
-}
-
-async function desconectarUsuarioRemoto(username) {
-  // Verifica se o usuário atual tem permissão
-  if (!currentPermissions.manageUsers && currentUser !== 'admin') {
-    alert('Sem permissão para desconectar usuários! Apenas administradores podem fazer isso.');
-    return false;
-  }
-  try {
-    // Remove a sessão do Firebase
-    await sessoesRef.child(username).remove();
-    console.log(`✅ Usuário ${username} desconectado com sucesso!`);
-    return true;
-  } catch (error) {
-    console.error('Erro ao desconectar:', error);
-    return false;
-  }
-}
-
-// Função para monitorar se a sessão atual foi removida (desconectado por admin)
-function iniciarMonitoramentoSessao() {
-  if (currentUser && sessionId) {
-    // Remove listener anterior se existir
-    if (sessaoListenerRef) {
-      sessoesRef.child(currentUser).off('value', sessaoListenerRef);
-    }
-    
-    // Cria nova função de callback
-    const callback = (snapshot) => {
-      const sessaoAtual = snapshot.val();
-      // Se a sessão não existe mais ou foi desativada ou o sessionId mudou
-      if (!sessaoAtual || !sessaoAtual.ativa || sessaoAtual.sessionId !== sessionId) {
-        console.log('Sessão foi encerrada por um administrador!');
-        alert('🔌 Sua sessão foi desconectada por um administrador. Faça login novamente.');
-        logout();
-      }
-    };
-    
-    // Armazena a referência do callback
-    sessaoListenerRef = callback;
-    sessoesRef.child(currentUser).on('value', callback);
-  }
-}
-
-function pararMonitoramentoSessao() {
-  if (currentUser && sessaoListenerRef) {
-    sessoesRef.child(currentUser).off('value', sessaoListenerRef);
-    sessaoListenerRef = null;
-  }
-}
-
-function carregarSessoesAtivas() {
-  sessoesRef.on('value', (snapshot) => {
-    const sessoes = snapshot.val() || {};
-    renderSessoesList(sessoes);
-  });
-}
-
-function renderSessoesList(sessoes) {
-  const container = document.getElementById('sessoes-list');
-  if (!container) return;
+// FUNÇÕES DE LISTAS DINÂMICAS
+function atualizarSelects() {
+  const motivoInput = document.getElementById('motivo-input');
+  const motivoFilter = document.getElementById('motivo-filter');
+  const responsavelInput = document.getElementById('responsavel-input');
+  const responsavelFilter = document.getElementById('responsavel-filter');
   
-  const usuariosComSessao = Object.entries(sessoes).filter(([_, sessao]) => sessao && sessao.ativa === true);
-  
-  if (usuariosComSessao.length === 0) {
-    container.innerHTML = '<div style="text-align: center; padding: 20px; color: #999;">Nenhum usuário logado no momento</div>';
-    return;
+  if (motivoInput) {
+    let valor = motivoInput.value;
+    motivoInput.innerHTML = '<option value="">Selecione</option>';
+    motivosList.forEach(m => motivoInput.innerHTML += `<option value="${m}">${m}</option>`);
+    if (motivosList.includes(valor)) motivoInput.value = valor;
   }
-  
-  container.innerHTML = usuariosComSessao.map(([username, sessao]) => {
-    const dataInicio = sessao.inicio ? new Date(sessao.inicio).toLocaleString('pt-BR') : 'Desconhecido';
-    const ultimaAtividade = sessao.ultimaAtividade ? new Date(sessao.ultimaAtividade).toLocaleString('pt-BR') : 'Desconhecido';
-    const userData = users[username] || { name: username, role: 'user' };
-    const isCurrentUser = username === currentUser;
-    const podeDesconectar = currentPermissions.manageUsers || currentUser === 'admin';
-    
-    return `
-      <div class="sessao-row" style="border-left: 4px solid ${isCurrentUser ? '#3498db' : '#e67e22'}; background: ${isCurrentUser ? '#e8f4fd' : 'white'}">
-        <div class="sessao-info">
-          <strong>${username}</strong> - ${userData.name || username}
-          <span class="${userData.role === 'admin' ? 'admin-badge' : 'user-badge'}">${userData.role === 'admin' ? 'Admin' : 'User'}</span>
-          <span class="session-active-badge">🔌 ${isCurrentUser ? 'VOCÊ (logado)' : 'Logado'}</span>
-          <div style="font-size: 11px; color: #666; margin-top: 8px;">
-            <div>📅 Login: ${dataInicio}</div>
-            <div>⏱️ Última atividade: ${ultimaAtividade}</div>
-            <div>🖥️ ${sessao.userAgent ? (sessao.userAgent.length > 50 ? sessao.userAgent.substring(0, 50) + '...' : sessao.userAgent) : 'Desconhecido'}</div>
-          </div>
-        </div>
-        <div class="sessao-actions">
-          <button class="btn-disconnect-user" onclick="desconectarUsuario('${username}')" style="background: #e67e22; padding: 6px 12px;">
-            🔌 Desconectar
-          </button>
-        </div>
-      </div>
-    `;
-  }).join('');
-}
-
-// Função global para desconectar (chamada pelo botão)
-window.desconectarUsuario = async (username) => {
-  if (!currentPermissions.manageUsers && currentUser !== 'admin') {
-    alert('❌ Você não tem permissão para desconectar usuários!');
-    return;
+  if (motivoFilter) {
+    let valor = motivoFilter.value;
+    motivoFilter.innerHTML = '<option value="todos">Todos</option>';
+    motivosList.forEach(m => motivoFilter.innerHTML += `<option value="${m}">${m}</option>`);
+    if (motivosList.includes(valor)) motivoFilter.value = valor;
   }
-  
-  if (username === currentUser) {
-    if (confirm(`⚠️ Você está prestes a desconectar sua própria sessão! Isso fará você sair do sistema. Continuar?`)) {
-      await desconectarUsuarioRemoto(username);
-      alert('Sua sessão foi desconectada.');
-      logout();
-    }
-  } else {
-    if (confirm(`Desconectar usuário "${username}"? Ele será forçado a sair do sistema imediatamente.`)) {
-      const sucesso = await desconectarUsuarioRemoto(username);
-      if (sucesso) {
-        alert(`✅ Usuário ${username} foi desconectado com sucesso!`);
-        // Recarrega a lista
-        carregarSessoesAtivas();
-      } else {
-        alert(`❌ Erro ao desconectar ${username}`);
-      }
-    }
+  if (responsavelInput) {
+    let valor = responsavelInput.value;
+    responsavelInput.innerHTML = '<option value="">Selecione</option>';
+    responsaveisList.forEach(r => responsavelInput.innerHTML += `<option value="${r}">${r}</option>`);
+    if (responsaveisList.includes(valor)) responsavelInput.value = valor;
   }
-};
-
-// ========== FUNÇÕES DE INATIVIDADE ==========
-function atualizarAtividade() {
-  if (currentUser && sessionId) {
-    sessoesRef.child(currentUser).update({ ultimaAtividade: Date.now() });
-    resetInactivityTimer();
+  if (responsavelFilter) {
+    let valor = responsavelFilter.value;
+    responsavelFilter.innerHTML = '<option value="todos">Todos</option>';
+    responsaveisList.forEach(r => responsavelFilter.innerHTML += `<option value="${r}">${r}</option>`);
+    if (responsaveisList.includes(valor)) responsavelFilter.value = valor;
   }
 }
 
-function resetInactivityTimer() {
-  if (inactivityTimer) clearTimeout(inactivityTimer);
-  inactivityTimer = setTimeout(() => {
-    if (currentUser) {
-      console.log('Logout por inatividade');
-      alert('⏰ Sessão expirada por inatividade (20 minutos). Faça login novamente.');
-      logout();
-    }
-  }, INACTIVITY_TIMEOUT);
-}
-
-function iniciarMonitoramentoAtividade() {
-  const eventos = ['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart', 'click', 'keydown'];
-  eventos.forEach(evento => {
-    document.addEventListener(evento, atualizarAtividade);
-  });
-  resetInactivityTimer();
-  iniciarMonitoramentoSessao();
-}
-
-function pararMonitoramentoAtividade() {
-  if (inactivityTimer) clearTimeout(inactivityTimer);
-  pararMonitoramentoSessao();
-}
-
-// ========== FUNÇÕES DE SESSÃO LOCAL ==========
-function salvarSessaoLocal(username, sid) {
-  sessionStorage.setItem('currentUser', username);
-  sessionStorage.setItem('sessionId', sid);
-  sessionStorage.setItem('loginTime', Date.now());
-}
-
-function limparSessaoLocal() {
-  sessionStorage.removeItem('currentUser');
-  sessionStorage.removeItem('sessionId');
-  sessionStorage.removeItem('loginTime');
-}
-
-function verificarSessaoLocal() {
-  const savedUser = sessionStorage.getItem('currentUser');
-  const savedSessionId = sessionStorage.getItem('sessionId');
-  const loginTime = sessionStorage.getItem('loginTime');
-  
-  if (savedUser && savedSessionId && loginTime) {
-    if (Date.now() - parseInt(loginTime) > 8 * 60 * 60 * 1000) {
-      limparSessaoLocal();
-      return null;
-    }
-    return { username: savedUser, sessionId: savedSessionId };
-  }
-  return null;
-}
-
-// ========== FUNÇÕES DE LOGIN/LOGOUT ==========
-async function login(username, password) {
-  if (!users[username] || users[username].password !== password) {
-    return false;
-  }
-  
-  // Verifica se já existe sessão ativa
-  const snapshot = await sessoesRef.child(username).once('value');
-  const sessaoAtiva = snapshot.val();
-  
-  if (sessaoAtiva && sessaoAtiva.ativa === true) {
-    // Se for um administrador tentando logar, oferece a opção de desconectar a sessão anterior
-    const userRole = users[username]?.role;
-    if (sessaoAtiva && sessaoAtiva.ativa === true) {
-      const confirmar = confirm(`⚠️ Usuário ${username} já está logado em outro dispositivo!\n\nDeseja forçar a desconexão da sessão anterior e continuar?`);
-      if (confirmar) {
-        // Força remoção da sessão anterior
-        await sessoesRef.child(username).remove();
-      } else {
-        const errorDiv = document.getElementById('login-error');
-        if (errorDiv) {
-          errorDiv.textContent = '❌ Usuário já está logado em outro dispositivo!';
-          errorDiv.style.display = 'block';
-        }
-        return false;
-      }
-    } else {
-      const errorDiv = document.getElementById('login-error');
-      if (errorDiv) {
-        errorDiv.textContent = '❌ Usuário já está logado em outro dispositivo! Peça para um administrador desconectar sua sessão.';
-        errorDiv.style.display = 'block';
-      }
-      return false;
-    }
-  }
-  
-  sessionId = gerarSessionId();
-  registrarSessao(username, sessionId);
-  salvarSessaoLocal(username, sessionId);
-  currentUser = username;
-  currentPermissions = users[username].permissions || {};
-  iniciarMonitoramentoAtividade();
-  return true;
-}
-
-function logout() {
-  pararMonitoramentoAtividade();
-  if (currentUser) {
-    removerSessao(currentUser);
-  }
-  limparSessaoLocal();
-  currentUser = null;
-  currentPermissions = {};
-  sessionId = null;
-  showLoginScreen();
-}
-
-function checkAutoLogin() {
-  const sessaoLocal = verificarSessaoLocal();
-  if (sessaoLocal && users[sessaoLocal.username]) {
-    sessoesRef.child(sessaoLocal.username).once('value', (snapshot) => {
-      const sessaoFirebase = snapshot.val();
-      if (sessaoFirebase && sessaoFirebase.ativa === true && sessaoFirebase.sessionId === sessaoLocal.sessionId) {
-        currentUser = sessaoLocal.username;
-        currentPermissions = users[sessaoLocal.username].permissions || {};
-        sessionId = sessaoLocal.sessionId;
-        showMainSystem();
-        iniciarMonitoramentoAtividade();
-        atualizarAtividade();
-      } else {
-        limparSessaoLocal();
-        showLoginScreen();
-      }
-    });
-  } else {
-    showLoginScreen();
+function adicionarNovoMotivo() {
+  const novo = prompt('Digite o novo motivo:');
+  if (novo && novo.trim() && !motivosList.includes(novo.trim())) {
+    motivosList.push(novo.trim());
+    atualizarSelects();
+    configRef.child('motivosList').set(motivosList);
+    alert(`✅ Motivo "${novo.trim()}" adicionado!`);
+  } else if (novo && motivosList.includes(novo.trim())) {
+    alert('Motivo já existe!');
   }
 }
 
-// ========== FUNÇÕES DE UI ==========
-function applyPermissions() {
-  const addButton = document.getElementById('add-button');
-  const exportButton = document.getElementById('export-button');
-  const printSelectedBtn = document.getElementById('print-selected-btn');
-  const printButton = document.getElementById('print-button');
-  const btnBaixarPendencia = document.getElementById('btn-baixar-pendencia');
-  const importSection = document.getElementById('import-section');
-  const batchActions = document.getElementById('batch-actions');
-  const deleteSelectedBtn = document.getElementById('delete-selected-btn');
-  const deleteAllBtn = document.getElementById('delete-all-btn');
-  const adminPanel = document.getElementById('admin-panel');
-  const clientSearchSection = document.getElementById('client-search-section');
-  const searchClientBtn = document.getElementById('search-client');
-  
-  if (addButton) addButton.disabled = !currentPermissions.create;
-  if (exportButton) exportButton.disabled = !currentPermissions.export;
-  if (printSelectedBtn) printSelectedBtn.disabled = !currentPermissions.print;
-  if (printButton) printButton.disabled = !currentPermissions.print;
-  if (btnBaixarPendencia) btnBaixarPendencia.disabled = !currentPermissions.baixarPendencia;
-  if (importSection) importSection.style.display = (currentPermissions.importClientes || currentPermissions.importItens) ? 'block' : 'none';
-  if (batchActions) batchActions.style.display = (currentPermissions.batchDelete || currentPermissions.deleteAll) ? 'flex' : 'none';
-  if (deleteSelectedBtn) deleteSelectedBtn.disabled = !currentPermissions.batchDelete;
-  if (deleteAllBtn) deleteAllBtn.disabled = !currentPermissions.deleteAll;
-  if (adminPanel) adminPanel.style.display = currentPermissions.manageUsers ? 'block' : 'none';
-  if (clientSearchSection) clientSearchSection.style.display = currentPermissions.showSearchCliente ? 'flex' : 'none';
-  if (searchClientBtn) searchClientBtn.disabled = !currentPermissions.searchCliente;
-}
-
-function showMainSystem() {
-  document.getElementById('login-screen').style.display = 'none';
-  document.getElementById('main-system').style.display = 'block';
-  document.getElementById('current-user').textContent = users[currentUser]?.name || currentUser;
-  document.getElementById('user-role').textContent = users[currentUser]?.role === 'admin' ? '(Admin)' : '(Usuário)';
-  applyPermissions();
-  if (currentPermissions.manageUsers) {
-    loadUsersList();
-    carregarSessoesAtivas();
-  }
-  renderClientesList();
-  renderItemsList();
-  updateItemLists();
-  updateClientList();
-}
-
-function showLoginScreen() {
-  pararMonitoramentoAtividade();
-  document.getElementById('login-screen').style.display = 'block';
-  document.getElementById('main-system').style.display = 'none';
-  document.getElementById('login-username').value = '';
-  document.getElementById('login-password').value = '';
-  document.getElementById('login-error').style.display = 'none';
-}
-
-// ========== FUNÇÕES DE CARREGAMENTO ==========
-function loadClientesFromFirebase() {
-  clientesRef.on('value', (snapshot) => {
-    clientesDB = snapshot.val() || {};
-    updateClientList();
-    updateClientCounter();
-    renderClientesList();
-  });
-}
-
-function loadItensFromFirebase() {
-  itensRef.on('value', (snapshot) => {
-    itensDB = snapshot.val() || {};
-    updateItemLists();
-    renderItemsList();
-  });
-}
-
-function loadPendenciasFromFirebase() {
-  pendenciasRef.on('value', (snapshot) => {
-    pendencias = snapshot.val() || {};
-    calcularProximoNumero();
-    updateTable();
-  });
-}
-
-function loadUsersFromFirebase() {
-  usersRef.on('value', (snapshot) => {
-    const firebaseUsers = snapshot.val();
-    if (firebaseUsers) {
-      users = { ...usuariosIniciais, ...firebaseUsers };
-    } else {
-      users = JSON.parse(JSON.stringify(usuariosIniciais));
-      usersRef.set(users);
-    }
-    if (currentUser && currentPermissions.manageUsers) {
-      loadUsersList();
-      carregarSessoesAtivas();
-    }
-  });
-}
-
-function saveUsersToFirebase() { 
-  usersRef.set(users); 
-}
-
-function loadUltimoNumero() {
-  configRef.child('ultimoNumeroPendencia').on('value', (snapshot) => {
-    const ultimo = snapshot.val();
-    if (ultimo !== null && ultimo > 0) {
-      nextPendenciaNumero = ultimo + 1;
-    } else {
-      calcularProximoNumero();
-    }
-  });
-}
-
-function calcularProximoNumero() {
-  const numeros = Object.values(pendencias).map(p => parseInt(p.numeroPendencia)).filter(n => !isNaN(n));
-  nextPendenciaNumero = numeros.length ? Math.max(...numeros) + 1 : 1;
-}
-
-function getNextNumeroPendencia() { return nextPendenciaNumero; }
-
-// ========== FUNÇÕES DE RENDERIZAÇÃO ==========
-function renderClientesList() {
-  const container = document.getElementById('clientes-list');
-  if (!container) return;
-  const searchTerm = document.getElementById('search-cliente-admin')?.value.toLowerCase() || '';
-  const filtered = Object.entries(clientesDB).filter(([codigo, item]) => 
-    codigo.toLowerCase().includes(searchTerm) || (item.nome || '').toLowerCase().includes(searchTerm));
-  container.innerHTML = filtered.map(([codigo, item]) => `
-    <div class="cliente-row">
-      <input type="checkbox" class="cliente-checkbox" data-codigo="${codigo}" style="width:20px;">
-      <div class="cliente-info"><strong>${codigo}</strong> - ${item.nome || ''}<br><small>${item.fantasia || ''} | ${item.telefone || ''}</small></div>
-      <div class="cliente-actions"><button class="btn-delete" onclick="deleteCliente('${codigo}')"> Excluir</button></div>
-    </div>
-  `).join('');
-}
-
-function renderItemsList() {
-  const container = document.getElementById('items-list');
-  if (!container) return;
-  const searchTerm = document.getElementById('search-item-admin')?.value.toLowerCase() || '';
-  const filtered = Object.entries(itensDB).filter(([codigo, item]) => 
-    codigo.toLowerCase().includes(searchTerm) || (item.descricao || '').toLowerCase().includes(searchTerm));
-  container.innerHTML = filtered.map(([codigo, item]) => `
-    <div class="item-row">
-      <input type="checkbox" class="item-checkbox" data-codigo="${codigo}" style="width:20px;">
-      <div class="item-info"><strong>${codigo}</strong> - ${item.descricao || ''}</div>
-      <div class="item-actions"><button class="btn-delete" onclick="deleteItem('${codigo}')"> Excluir</button></div>
-    </div>
-  `).join('');
-}
-
-function loadUsersList() {
-  const container = document.getElementById('users-list');
-  if (!container) return;
-  const permissoesLista = [
-    { id: 'create', label: '📝 Criar Pendência' }, { id: 'edit', label: '✏️ Editar Pendência' }, 
-    { id: 'delete', label: '🗑️ Excluir Pendência' }, { id: 'changeStatus', label: '🔄 Alterar Status' }, 
-    { id: 'export', label: '📎 Exportar Dados' }, { id: 'print', label: '🖨️ Imprimir' },
-    { id: 'importClientes', label: '📥 Importar Clientes' }, { id: 'importItens', label: '📦 Importar Itens' }, 
-    { id: 'batchDelete', label: '📦 Excluir Lote Pendências' }, { id: 'deleteAll', label: '⚠️ Excluir Todas Pendências' }, 
-    { id: 'manageUsers', label: '👥 Gerenciar Usuários' }, { id: 'baixarPendencia', label: ' Baixar Pendência' }
-  ];
-  container.innerHTML = '';
-  Object.entries(users).forEach(([username, userData]) => {
-    if (username === currentUser) return;
-    const perms = userData.permissions || {};
-    const userItem = document.createElement('div');
-    userItem.className = 'user-item';
-    userItem.innerHTML = `
-      <div><strong>${username}</strong> - ${userData.name || username}<span class="${userData.role === 'admin' ? 'admin-badge' : 'user-badge'}">${userData.role === 'admin' ? 'Admin' : 'User'}</span></div>
-      <div class="user-permissions">${permissoesLista.map(p => `<label class="perm-checkbox"><input type="checkbox" class="perm-${p.id}" ${perms[p.id] ? 'checked' : ''}> ${p.label}</label>`).join('')}</div>
-      <div class="user-actions"><button class="btn-reset-password" onclick="resetUserPassword('${username}')">🔑 Resetar Senha</button><button class="btn-delete-user" onclick="deleteUser('${username}')"> Excluir Usuário</button></div>
-    `;
-    permissoesLista.forEach(p => {
-      const cb = userItem.querySelector(`.perm-${p.id}`);
-      if (cb) cb.addEventListener('change', () => {
-        users[username].permissions = users[username].permissions || {};
-        users[username].permissions[p.id] = cb.checked;
-        saveUsersToFirebase();
-        if (username === currentUser) { currentPermissions = users[username].permissions; applyPermissions(); }
-      });
-    });
-    container.appendChild(userItem);
-  });
-}
-
-function updateClientList() {
-  const datalist = document.getElementById('client-list');
-  const modalDatalist = document.getElementById('client-list-modal');
-  if (datalist) {
-    datalist.innerHTML = '';
-    Object.keys(clientesDB).forEach(codigo => {
-      const option = document.createElement('option');
-      option.value = codigo;
-      option.textContent = `${codigo} - ${clientesDB[codigo].nome || ''}`;
-      datalist.appendChild(option);
-    });
-  }
-  if (modalDatalist) {
-    modalDatalist.innerHTML = '';
-    Object.keys(clientesDB).forEach(codigo => {
-      const option = document.createElement('option');
-      option.value = codigo;
-      option.textContent = `${codigo} - ${clientesDB[codigo].nome || ''}`;
-      modalDatalist.appendChild(option);
-    });
+function adicionarNovoResponsavel() {
+  const novo = prompt('Digite o novo responsável:');
+  if (novo && novo.trim() && !responsaveisList.includes(novo.trim())) {
+    responsaveisList.push(novo.trim());
+    atualizarSelects();
+    configRef.child('responsaveisList').set(responsaveisList);
+    alert(`✅ Responsável "${novo.trim()}" adicionado!`);
+  } else if (novo && responsaveisList.includes(novo.trim())) {
+    alert('Responsável já existe!');
   }
 }
 
-function updateItemLists() {
-  const datalist = document.getElementById('item-list-modal');
-  if (datalist) {
-    datalist.innerHTML = '';
-    Object.keys(itensDB).forEach(codigo => {
-      const option = document.createElement('option');
-      option.value = codigo;
-      option.textContent = `${codigo} - ${itensDB[codigo].descricao || ''}`;
-      datalist.appendChild(option);
-    });
-  }
-}
-
-function updateClientCounter() {
-  const total = Object.keys(clientesDB).length;
-  const counter = document.getElementById('client-counter');
-  if (counter) counter.innerHTML = `📊 ${total} clientes`;
-}
-
-window.deleteCliente = (codigo) => {
-  if (confirm(`Excluir cliente ${codigo}?`)) {
-    delete clientesDB[codigo];
-    clientesRef.set(clientesDB);
-    renderClientesList();
-    updateClientList();
-    updateClientCounter();
-  }
-};
-
-window.deleteItem = (codigo) => {
-  if (confirm(`Excluir item ${codigo}?`)) {
-    delete itensDB[codigo];
-    itensRef.set(itensDB);
-    renderItemsList();
-    updateItemLists();
-  }
-};
-
-window.resetUserPassword = function(username) {
-  const newPass = prompt(`Nova senha para ${username}:`);
-  if (newPass && newPass.length >= 4) { 
-    users[username].password = newPass; 
-    saveUsersToFirebase(); 
-    alert('Senha alterada!'); 
-  } else if (newPass) {
-    alert('A senha deve ter pelo menos 4 caracteres!');
-  }
-};
-
-window.deleteUser = function(username) {
-  if (confirm(`Excluir usuário ${username}?`)) { 
-    delete users[username]; 
-    saveUsersToFirebase(); 
-    loadUsersList(); 
-  }
-};
-
-// ========== FUNÇÕES DE PREENCHIMENTO EDITÁVEL ==========
-function preencherDadosCliente(codigo) {
-  const cliente = clientesDB[codigo];
-  if (cliente) {
-    const nomeInput = document.getElementById('cliente-nome');
-    const fantasiaInput = document.getElementById('cliente-fantasia');
-    const enderecoInput = document.getElementById('endereco-input');
-    const telefoneInput = document.getElementById('telefone-input');
-    const cidadeInput = document.getElementById('cidade-input');
-    const bairroInput = document.getElementById('bairro-input');
-    
-    if (nomeInput && !nomeInput.value) nomeInput.value = cliente.nome || '';
-    if (fantasiaInput && !fantasiaInput.value) fantasiaInput.value = cliente.fantasia || '';
-    if (enderecoInput && !enderecoInput.value) enderecoInput.value = cliente.endereco || '';
-    if (telefoneInput && !telefoneInput.value) telefoneInput.value = cliente.telefone || '';
-    if (cidadeInput && !cidadeInput.value) cidadeInput.value = cliente.cidade || '';
-    if (bairroInput && !bairroInput.value) bairroInput.value = cliente.bairro || '';
-    return true;
-  }
-  return false;
-}
-
-function preencherDadosItem(codigo) {
-  const item = itensDB[codigo];
-  if (item) {
-    const descricaoInput = document.getElementById('item-descricao-input');
-    if (descricaoInput && !descricaoInput.value) {
-      descricaoInput.value = item.descricao || '';
-    }
-  }
-}
-
-// ========== FUNÇÕES DE ITENS DA PENDÊNCIA ==========
-function addItemToPendencia() {
-  const codigo = document.getElementById('item-codigo-input')?.value.trim();
-  const descricao = document.getElementById('item-descricao-input')?.value.trim();
-  const quantidade = document.getElementById('item-quantidade-input')?.value.trim();
-  if (!codigo && !descricao) { alert('Digite o código ou descrição do item!'); return; }
-  if (!quantidade) { alert('Digite a quantidade do item!'); return; }
-  currentPendenciaItens.push({ codigo: codigo || '', descricao: descricao || '', quantidade: quantidade });
-  renderPendenciaItensList();
-  document.getElementById('item-codigo-input').value = '';
-  document.getElementById('item-descricao-input').value = '';
-  document.getElementById('item-quantidade-input').value = '';
-}
-
-function renderPendenciaItensList() {
-  const container = document.getElementById('itens-list-pendencia');
-  if (!container) return;
-  if (currentPendenciaItens.length === 0) {
-    container.innerHTML = '<div style="color:#999;text-align:center;padding:20px;">Nenhum item adicionado</div>';
-    return;
-  }
-  container.innerHTML = currentPendenciaItens.map((item, index) => `
-    <div class="item-pendencia-display">
-      <span><strong>${item.codigo || '---'}</strong> - ${item.descricao || '---'}</span>
-      <span>Qtd: ${item.quantidade}</span>
-      <button type="button" onclick="removePendenciaItem(${index})" style="background:#e74c3c;color:white;border:none;padding:2px 8px;border-radius:3px;cursor:pointer;">Remover</button>
-    </div>
-  `).join('');
-}
-
-window.removePendenciaItem = (index) => { 
-  currentPendenciaItens.splice(index, 1); 
-  renderPendenciaItensList(); 
-};
-
-// ========== FUNÇÕES DE IMPORTAÇÃO ==========
+// FUNÇÕES DE IMPORTAÇÃO
 function importarClientes(file) {
   const reader = new FileReader();
   reader.onload = function(e) {
@@ -1790,7 +1050,6 @@ function importarClientes(file) {
     alert(`✅ Importados ${importados} clientes!`);
     renderClientesList();
     updateClientList();
-    updateClientCounter();
   };
   reader.readAsArrayBuffer(file);
 }
@@ -1823,39 +1082,341 @@ function importarItens(file) {
     }
     itensRef.set(novosItens);
     alert(`✅ Importados ${importados} itens!`);
+    renderItemsList();
+    updateItemLists();
   };
   reader.readAsArrayBuffer(file);
 }
 
-// ========== FUNÇÕES DE PENDÊNCIAS ==========
-function updateTable() {
-  const statusFilter = document.getElementById('status-filter');
-  const motivoFilter = document.getElementById('motivo-filter');
-  const responsavelFilter = document.getElementById('responsavel-filter');
-  const searchInput = document.getElementById('search-input');
-  const showResolved = document.getElementById('show-resolved');
-  const showUnresolved = document.getElementById('show-unresolved');
-  const totalCountEl = document.getElementById('total-count');
-  const pendingCountEl = document.getElementById('pending-count');
-  const emrotaCountEl = document.getElementById('emrota-count');
-  const resolvedCountEl = document.getElementById('resolved-count');
-  const tableBody = document.getElementById('pendencies-table');
+// FUNÇÕES DE SESSÃO E LOGIN
+function gerarSessionId() { return Date.now() + '-' + Math.random().toString(36).substr(2, 9); }
+
+async function login(username, password) {
+  const errorDiv = document.getElementById('login-error');
+  if (!users[username]) {
+    errorDiv.textContent = 'Usuário não encontrado!';
+    errorDiv.style.display = 'block';
+    return false;
+  }
+  if (users[username].password !== password) {
+    errorDiv.textContent = 'Senha incorreta!';
+    errorDiv.style.display = 'block';
+    return false;
+  }
+  errorDiv.style.display = 'none';
   
-  const statusVal = statusFilter?.value || 'todos';
-  const motivoVal = motivoFilter?.value || 'todos';
-  const respVal = responsavelFilter?.value || 'todos';
-  const searchVal = searchInput?.value.toLowerCase() || '';
-  const showRes = showResolved?.checked !== false;
-  const showUnres = showUnresolved?.checked !== false;
+  const snapshot = await sessoesRef.child(username).once('value');
+  if (snapshot.val() && snapshot.val().ativa) {
+    const confirmar = confirm(`⚠️ Usuário ${username} já está logado em outro dispositivo!\n\nDeseja forçar a desconexão?`);
+    if (!confirmar) {
+      errorDiv.textContent = '❌ Usuário já está logado em outro dispositivo!';
+      errorDiv.style.display = 'block';
+      return false;
+    }
+    await sessoesRef.child(username).remove();
+  }
+  
+  sessionId = gerarSessionId();
+  await sessoesRef.child(username).set({ sessionId, ativa: true, inicio: Date.now(), ultimaAtividade: Date.now() });
+  sessionStorage.setItem('currentUser', username);
+  sessionStorage.setItem('sessionId', sessionId);
+  currentUser = username;
+  currentPermissions = users[username].permissions || {};
+  return true;
+}
+
+function logout() {
+  if (currentUser) sessoesRef.child(currentUser).remove();
+  sessionStorage.clear();
+  currentUser = null;
+  document.getElementById('login-screen').style.display = 'block';
+  document.getElementById('main-system').style.display = 'none';
+}
+
+function checkAutoLogin() {
+  const saved = sessionStorage.getItem('currentUser');
+  if (saved && users[saved]) {
+    currentUser = saved;
+    currentPermissions = users[saved].permissions || {};
+    showMainSystem();
+  } else {
+    document.getElementById('login-screen').style.display = 'block';
+  }
+}
+
+function carregarSessoesAtivas() {
+  sessoesRef.on('value', (snapshot) => {
+    const sessoes = snapshot.val() || {};
+    const container = document.getElementById('sessoes-list');
+    if (!container) return;
+    const ativas = Object.entries(sessoes).filter(([_, s]) => s && s.ativa);
+    if (ativas.length === 0) {
+      container.innerHTML = '<div style="text-align:center;padding:20px;">Nenhum usuário logado</div>';
+      return;
+    }
+    container.innerHTML = ativas.map(([user, s]) => `
+      <div class="user-item">
+        <div><strong>${user}</strong><br><small>Login: ${new Date(s.inicio).toLocaleString()}</small></div>
+        <button class="btn-disconnect-user" onclick="desconectarUsuario('${user}')" style="background:#e67e22;">🔌 Desconectar</button>
+      </div>
+    `).join('');
+  });
+}
+
+window.desconectarUsuario = async (username) => {
+  if (confirm(`Desconectar ${username}?`)) {
+    await sessoesRef.child(username).remove();
+    carregarSessoesAtivas();
+  }
+};
+
+function showMainSystem() {
+  document.getElementById('login-screen').style.display = 'none';
+  document.getElementById('main-system').style.display = 'block';
+  document.getElementById('current-user').textContent = users[currentUser]?.name || currentUser;
+  document.getElementById('user-role').textContent = users[currentUser]?.role === 'admin' ? '(Admin)' : '';
+  
+  const isAdmin = users[currentUser]?.role === 'admin';
+  document.getElementById('admin-panel').style.display = isAdmin ? 'block' : 'none';
+  document.getElementById('import-section').style.display = currentPermissions.importClientes ? 'block' : 'none';
+  document.getElementById('batch-actions').style.display = currentPermissions.batchDelete ? 'flex' : 'none';
+  
+  atualizarSelects();
+  renderClientesList();
+  renderItemsList();
+  updateClientList();
+  updateItemLists();
+  if (isAdmin) {
+    carregarSessoesAtivas();
+    loadUsersList();
+  }
+}
+
+// RENDERIZAÇÃO CLIENTES/ITENS
+function renderClientesList() {
+  const container = document.getElementById('clientes-list');
+  if (!container) return;
+  const clientesArray = Object.entries(clientesDB);
+  if (clientesArray.length === 0) {
+    container.innerHTML = '<div style="text-align:center;padding:20px;">Nenhum cliente cadastrado</div>';
+    return;
+  }
+  container.innerHTML = clientesArray.map(([codigo, item]) => `
+    <div class="cliente-row">
+      <div class="cliente-info"><strong>${codigo}</strong> - ${item.nome || ''}<br><small>${item.cidade || ''} | ${item.telefone || ''}</small></div>
+      <div class="cliente-actions"><button class="btn-delete" onclick="deleteCliente('${codigo}')">Excluir</button></div>
+    </div>
+  `).join('');
+}
+
+function renderItemsList() {
+  const container = document.getElementById('items-list');
+  if (!container) return;
+  const itensArray = Object.entries(itensDB);
+  if (itensArray.length === 0) {
+    container.innerHTML = '<div style="text-align:center;padding:20px;">Nenhum item cadastrado</div>';
+    return;
+  }
+  container.innerHTML = itensArray.map(([codigo, item]) => `
+    <div class="item-row">
+      <div class="item-info"><strong>${codigo}</strong> - ${item.descricao || ''}</div>
+      <div class="item-actions"><button class="btn-delete" onclick="deleteItem('${codigo}')">Excluir</button></div>
+    </div>
+  `).join('');
+}
+
+function loadUsersList() {
+  const container = document.getElementById('users-list');
+  if (!container) return;
+  container.innerHTML = '';
+  Object.entries(users).forEach(([username, userData]) => {
+    if (username === currentUser) return;
+    const perms = userData.permissions || {};
+    const userDiv = document.createElement('div');
+    userDiv.className = 'user-item';
+    userDiv.innerHTML = `
+      <div class="user-info-main">
+        <strong>${username}</strong> - ${userData.name || username}
+        <span class="${userData.role === 'admin' ? 'admin-badge' : 'user-badge'}">${userData.role === 'admin' ? 'Admin' : 'User'}</span>
+      </div>
+      <div class="user-permissions" id="perms-${username}"></div>
+      <div class="user-actions">
+        <button class="btn-reset-password" onclick="resetUserPassword('${username}')">🔑 Resetar Senha</button>
+        <button class="btn-delete-user" onclick="deleteUser('${username}')">🗑️ Excluir</button>
+      </div>
+    `;
+    container.appendChild(userDiv);
+    
+    // Adicionar checkboxes de permissões
+    const permsContainer = document.getElementById(`perms-${username}`);
+    permissoesLista.forEach(perm => {
+      const label = document.createElement('label');
+      label.className = 'perm-checkbox';
+      label.innerHTML = `
+        <input type="checkbox" class="perm-${perm.id}" data-user="${username}" data-perm="${perm.id}" ${perms[perm.id] ? 'checked' : ''}>
+        ${perm.label}
+      `;
+      permsContainer.appendChild(label);
+    });
+  });
+  
+  // Adicionar eventos de mudança de permissão
+  document.querySelectorAll('[class^="perm-"]').forEach(cb => {
+    cb.addEventListener('change', (e) => {
+      const username = cb.dataset.user;
+      const permName = cb.dataset.perm;
+      if (username && users[username]) {
+        if (!users[username].permissions) users[username].permissions = {};
+        users[username].permissions[permName] = cb.checked;
+        usersRef.set(users);
+        if (username === currentUser) {
+          currentPermissions = users[username].permissions;
+        }
+      }
+    });
+  });
+}
+
+window.resetUserPassword = function(username) {
+  const newPass = prompt(`Nova senha para ${username}:`);
+  if (newPass && newPass.length >= 4) { 
+    users[username].password = newPass; 
+    usersRef.set(users); 
+    alert('Senha alterada!'); 
+  } else if (newPass) {
+    alert('A senha deve ter pelo menos 4 caracteres!');
+  }
+};
+
+window.deleteUser = function(username) {
+  if (confirm(`Excluir usuário ${username}?`)) { 
+    delete users[username]; 
+    usersRef.set(users); 
+    loadUsersList(); 
+  }
+};
+
+window.deleteCliente = (codigo) => {
+  if (confirm(`Excluir cliente ${codigo}?`)) { 
+    delete clientesDB[codigo]; 
+    clientesRef.set(clientesDB); 
+    renderClientesList(); 
+    updateClientList(); 
+  }
+};
+
+window.deleteItem = (codigo) => {
+  if (confirm(`Excluir item ${codigo}?`)) { 
+    delete itensDB[codigo]; 
+    itensRef.set(itensDB); 
+    renderItemsList(); 
+    updateItemLists(); 
+  }
+};
+
+function excluirTodosClientes() {
+  const total = Object.keys(clientesDB).length;
+  if (total === 0) { alert('Nenhum cliente cadastrado!'); return; }
+  if (confirm(`⚠️ EXCLUIR TODOS os ${total} clientes?`) && prompt('Digite "EXCLUIR" para confirmar:') === 'EXCLUIR') {
+    clientesRef.set(null);
+    alert('✅ Todos os clientes foram excluídos!');
+  }
+}
+
+function excluirTodosItens() {
+  const total = Object.keys(itensDB).length;
+  if (total === 0) { alert('Nenhum item cadastrado!'); return; }
+  if (confirm(`⚠️ EXCLUIR TODOS os ${total} itens?`) && prompt('Digite "EXCLUIR" para confirmar:') === 'EXCLUIR') {
+    itensRef.set(null);
+    alert('✅ Todos os itens foram excluídos!');
+  }
+}
+
+function updateClientList() {
+  const datalist = document.getElementById('client-list-modal');
+  if (datalist) {
+    datalist.innerHTML = '';
+    Object.keys(clientesDB).forEach(codigo => {
+      const option = document.createElement('option');
+      option.value = codigo;
+      datalist.appendChild(option);
+    });
+  }
+}
+
+function updateItemLists() {
+  const datalist = document.getElementById('item-list-modal');
+  if (datalist) {
+    datalist.innerHTML = '';
+    Object.keys(itensDB).forEach(codigo => {
+      const option = document.createElement('option');
+      option.value = codigo;
+      datalist.appendChild(option);
+    });
+  }
+}
+
+function preencherDadosCliente(codigo) {
+  const c = clientesDB[codigo];
+  if (c) {
+    document.getElementById('cliente-nome').value = c.nome || '';
+    document.getElementById('cliente-fantasia').value = c.fantasia || '';
+    document.getElementById('endereco-input').value = c.endereco || '';
+    document.getElementById('telefone-input').value = c.telefone || '';
+    document.getElementById('cidade-input').value = c.cidade || '';
+    document.getElementById('bairro-input').value = c.bairro || '';
+  }
+}
+
+// ITENS DA PENDÊNCIA
+function addItemToPendencia() {
+  const codigo = document.getElementById('item-codigo-input').value.trim();
+  const descricao = document.getElementById('item-descricao-input').value.trim();
+  const quantidade = document.getElementById('item-quantidade-input').value.trim();
+  if (!quantidade) { alert('Digite a quantidade!'); return; }
+  currentPendenciaItens.push({ codigo, descricao, quantidade });
+  renderItensList();
+  document.getElementById('item-codigo-input').value = '';
+  document.getElementById('item-descricao-input').value = '';
+  document.getElementById('item-quantidade-input').value = '';
+  document.getElementById('item-codigo-input').focus();
+}
+
+function renderItensList() {
+  const container = document.getElementById('itens-list-pendencia');
+  if (!container) return;
+  if (currentPendenciaItens.length === 0) {
+    container.innerHTML = '<div style="color:#999;text-align:center;">Nenhum item adicionado</div>';
+    return;
+  }
+  container.innerHTML = currentPendenciaItens.map((item, i) => `
+    <div class="item-pendencia-display">
+      <span><strong>${item.codigo || '---'}</strong> - ${item.descricao || '---'} (${item.quantidade})</span>
+      <button type="button" onclick="removeItem(${i})" style="background:#e74c3c;color:white;border:none;padding:2px 8px;border-radius:3px;">Remover</button>
+    </div>
+  `).join('');
+}
+window.removeItem = (i) => { currentPendenciaItens.splice(i, 1); renderItensList(); };
+
+function calcularProximoNumero() {
+  const nums = Object.values(pendencias).map(p => parseInt(p.numeroPendencia)).filter(n => !isNaN(n));
+  nextPendenciaNumero = nums.length ? Math.max(...nums) + 1 : 1;
+}
+
+function getNextNumero() { return nextPendenciaNumero; }
+
+// TABELA PRINCIPAL
+function updateTable() {
+  const statusVal = document.getElementById('status-filter')?.value || 'todos';
+  const motivoVal = document.getElementById('motivo-filter')?.value || 'todos';
+  const respVal = document.getElementById('responsavel-filter')?.value || 'todos';
+  const searchVal = document.getElementById('search-input')?.value.toLowerCase() || '';
   
   let pendArray = Object.entries(pendencias).map(([id, p]) => ({ id, ...p }));
   pendArray = pendArray.filter(p => {
     if (statusVal !== 'todos' && p.status !== statusVal) return false;
     if (motivoVal !== 'todos' && p.motivo !== motivoVal) return false;
     if (respVal !== 'todos' && p.responsavel !== respVal) return false;
-    const isRes = p.status === 'resolvido';
-    if (!showRes && isRes) return false;
-    if (!showUnres && !isRes) return false;
     if (!p.cliente?.toLowerCase().includes(searchVal) && !p.numeroPendencia?.toLowerCase().includes(searchVal)) return false;
     return true;
   });
@@ -1867,25 +1428,21 @@ function updateTable() {
     return currentSort.order === 'asc' ? (va > vb ? 1 : -1) : (va < vb ? 1 : -1);
   });
   
-  if (totalCountEl) totalCountEl.textContent = Object.keys(pendencias).length;
-  if (pendingCountEl) pendingCountEl.textContent = Object.values(pendencias).filter(p => p.status === 'pendente').length;
-  if (emrotaCountEl) emrotaCountEl.textContent = Object.values(pendencias).filter(p => p.status === 'emrota').length;
-  if (resolvedCountEl) resolvedCountEl.textContent = Object.values(pendencias).filter(p => p.status === 'resolvido').length;
+  document.getElementById('total-count').textContent = Object.keys(pendencias).length;
+  document.getElementById('pending-count').textContent = Object.values(pendencias).filter(p => p.status === 'pendente').length;
+  document.getElementById('resolved-count').textContent = Object.values(pendencias).filter(p => p.status === 'resolvido').length;
+  document.getElementById('emrota-count').textContent = Object.values(pendencias).filter(p => p.status === 'emrota').length;
   
-  if (!tableBody) return;
-  if (pendArray.length === 0) {
-    tableBody.innerHTML = '<tr><td colspan="12" style="text-align:center">Nenhuma pendência encontrada<\/td><\/tr>';
-    return;
-  }
+  const tbody = document.getElementById('pendencies-table');
+  if (!tbody) return;
+  if (pendArray.length === 0) { tbody.innerHTML = '<tr><td colspan="12">Nenhuma pendência encontrada<\/tr>'; return; }
   
-  tableBody.innerHTML = '';
+  tbody.innerHTML = '';
   pendArray.forEach(p => {
     const statusClass = p.status === 'pendente' ? 'status-pendente' : (p.status === 'emrota' ? 'status-emrota' : 'status-resolvido');
     const statusText = p.status === 'pendente' ? 'Pendente' : (p.status === 'emrota' ? 'Em Rota' : 'Resolvido');
-    const baixadoPor = p.baixadoPor ? p.baixadoPor : (p.status === 'resolvido' ? (p.registradoPor || '-') : '-');
-    const dataBaixa = p.dataBaixa ? new Date(p.dataBaixa).toLocaleDateString('pt-BR') : '';
-    const baixadoDisplay = baixadoPor !== '-' ? `${baixadoPor}${dataBaixa ? ` (${dataBaixa})` : ''}` : '-';
-    const registradoDisplay = `${p.registradoPor || '-'} - ${p.registradoEm ? new Date(p.registradoEm).toLocaleString('pt-BR') : '-'}`;
+    const baixado = p.baixadoPor || (p.status === 'resolvido' ? (p.registradoPor || '-') : '-');
+    const registrado = `${p.registradoPor || '-'} - ${p.registradoEm ? new Date(p.registradoEm).toLocaleString('pt-BR') : '-'}`;
     
     const tr = document.createElement('tr');
     tr.innerHTML = `
@@ -1897,14 +1454,14 @@ function updateTable() {
       <td>${p.dataFalta ? new Date(p.dataFalta).toLocaleDateString('pt-BR') : '-'}</td>
       <td>${p.responsavel || '-'}</td>
       <td>${p.motivo || '-'}</td>
-      <td><span class="${statusClass}" onclick="window.mudarStatus('${p.id}')">${statusText}</span></td>
-      <td>${baixadoDisplay}</td>
-      <td>${registradoDisplay}</td>
+      <td><span class="${statusClass}" onclick="mudarStatus('${p.id}')">${statusText}</span></td>
+      <td>${baixado}</td>
+      <td>${registrado}</td>
       <td style="white-space: nowrap;">
-  <button class="action-btn btn-edit" onclick="window.editarPendencia('${p.id}')" style="background:#3498db; color:white; border:none; padding:5px 8px; margin:2px; border-radius:3px; cursor:pointer;">✏️</button>
-  <button class="action-btn btn-delete" onclick="window.excluirPendencia('${p.id}')" style="background:#e74c3c; color:white; border:none; padding:5px 8px; margin:2px; border-radius:3px; cursor:pointer;">🗑️</button>
-  <button class="action-btn btn-print-row" onclick="window.imprimirPendencia('${p.id}')" style="background:#16a085; color:white; border:none; padding:5px 8px; margin:2px; border-radius:3px; cursor:pointer;">🖨️</button>
-</td>
+        <button class="action-btn btn-edit" onclick="editarPendencia('${p.id}')" title="Editar">✏️</button>
+        <button class="action-btn btn-delete" onclick="excluirPendencia('${p.id}')" title="Excluir">🗑️</button>
+        <button class="action-btn btn-print-row" onclick="imprimirPendencia('${p.id}')" title="Imprimir">🖨️</button>
+       </td>
     `;
     const cb = tr.querySelector('.row-checkbox');
     if (cb) cb.addEventListener('change', (e) => {
@@ -1912,170 +1469,137 @@ function updateTable() {
       else selectedItems.delete(p.id);
       updateSelectedCount();
     });
-    tableBody.appendChild(tr);
+    tbody.appendChild(tr);
   });
   updateSelectedCount();
 }
 
 function updateSelectedCount() {
-  const span = document.getElementById('selected-count');
-  const headerCheckbox = document.getElementById('header-checkbox');
-  if (span) span.textContent = `${selectedItems.size} selecionada(s)`;
-  if (headerCheckbox) {
-    const allCbs = document.querySelectorAll('.row-checkbox');
-    const allChecked = allCbs.length > 0 && Array.from(allCbs).every(cb => cb.checked);
-    headerCheckbox.checked = allChecked;
+  document.getElementById('selected-count').textContent = `${selectedItems.size} selecionada(s)`;
+  const headerCb = document.getElementById('header-checkbox');
+  if (headerCb) {
+    const all = document.querySelectorAll('.row-checkbox');
+    headerCb.checked = all.length > 0 && Array.from(all).every(cb => cb.checked);
   }
 }
 
 window.editarPendencia = (id) => {
-  if (!currentPermissions.edit) { alert('Sem permissão!'); return; }
-  const pendencia = pendencias[id];
-  if (!pendencia) { alert('Pendência não encontrada!'); return; }
+  if (!currentPermissions.edit) { alert('Sem permissão para editar!'); return; }
+  const p = pendencias[id];
+  if (!p) return;
   editingId = id;
   document.getElementById('modal-title').textContent = 'Editar Pendência';
-  document.getElementById('cliente-codigo').value = pendencia.clienteCodigo || '';
-  document.getElementById('cliente-nome').value = pendencia.cliente || '';
-  document.getElementById('cliente-fantasia').value = pendencia.fantasia || '';
-  document.getElementById('endereco-input').value = pendencia.endereco || '';
-  document.getElementById('telefone-input').value = pendencia.telefone || '';
-  document.getElementById('cidade-input').value = pendencia.cidade || '';
-  document.getElementById('bairro-input').value = pendencia.bairro || '';
-  document.getElementById('data-falta-input').value = pendencia.dataFalta;
-  document.getElementById('numero-pendencia-input').value = pendencia.numeroPendencia;
-  document.getElementById('motivo-input').value = pendencia.motivo || '';
-  document.getElementById('tipo-servico-input').value = pendencia.tipoServico || 'SOMENTE ENTREGAR';
-  document.getElementById('observacao-input').value = pendencia.observacao || '';
-  if (document.getElementById('responsavel-input')) document.getElementById('responsavel-input').value = pendencia.responsavel || '';
-  if (document.getElementById('status-input')) document.getElementById('status-input').value = pendencia.status || 'pendente';
-  currentPendenciaItens = pendencia.itens ? [...pendencia.itens] : [];
-  renderPendenciaItensList();
+  document.getElementById('cliente-codigo').value = p.clienteCodigo || '';
+  document.getElementById('cliente-nome').value = p.cliente || '';
+  document.getElementById('cliente-fantasia').value = p.fantasia || '';
+  document.getElementById('endereco-input').value = p.endereco || '';
+  document.getElementById('telefone-input').value = p.telefone || '';
+  document.getElementById('cidade-input').value = p.cidade || '';
+  document.getElementById('bairro-input').value = p.bairro || '';
+  document.getElementById('data-falta-input').value = p.dataFalta;
+  document.getElementById('numero-pendencia-input').value = p.numeroPendencia;
+  document.getElementById('motivo-input').value = p.motivo || '';
+  document.getElementById('tipo-servico-input').value = p.tipoServico || 'SOMENTE ENTREGAR';
+  document.getElementById('observacao-input').value = p.observacao || '';
+  document.getElementById('responsavel-input').value = p.responsavel || '';
+  document.getElementById('status-input').value = p.status || 'pendente';
+  currentPendenciaItens = p.itens ? [...p.itens] : [];
+  renderItensList();
   document.getElementById('edit-fields').style.display = 'block';
   document.getElementById('modal').style.display = 'flex';
 };
 
 window.excluirPendencia = (id) => {
-  if (!currentPermissions.delete) { alert('Sem permissão!'); return; }
-  if (confirm('Excluir esta pendência?')) pendenciasRef.child(id).remove();
+  if (!currentPermissions.delete) { alert('Sem permissão para excluir!'); return; }
+  if (confirm('Excluir pendência?')) pendenciasRef.child(id).remove();
 };
 
 window.mudarStatus = async (id) => {
-  if (!currentPermissions.changeStatus) { alert('Sem permissão!'); return; }
+  if (!currentPermissions.changeStatus) { alert('Sem permissão para alterar status!'); return; }
   const p = pendencias[id];
   if (!p) return;
-  const novosStatus = { pendente: 'emrota', emrota: 'resolvido', resolvido: 'pendente' };
-  await pendenciasRef.child(id).update({ status: novosStatus[p.status] });
+  const novos = { pendente: 'emrota', emrota: 'resolvido', resolvido: 'pendente' };
+  await pendenciasRef.child(id).update({ status: novos[p.status] });
 };
 
 function baixarPendencia() {
+  if (!currentPermissions.baixarPendencia) { alert('Sem permissão para baixar pendência!'); return; }
   const numero = document.getElementById('baixar-numero').value.trim();
   const msgDiv = document.getElementById('baixar-mensagem');
-  if (!numero) { mostrarMensagem('⚠️ Digite o número da pendência!', '#ff9800', msgDiv); return; }
-  
-  let pendenciaId = null;
-  for (const [id, p] of Object.entries(pendencias)) {
-    if (p.numeroPendencia === numero) { pendenciaId = id; break; }
+  if (!numero) { alert('Digite o número!'); return; }
+  let id = null;
+  for (const [pid, p] of Object.entries(pendencias)) {
+    if (p.numeroPendencia === numero) { id = pid; break; }
   }
-  if (!pendenciaId) { mostrarMensagem(`❌ Pendência nº ${numero} não encontrada!`, '#e74c3c', msgDiv); return; }
-  
-  const pendencia = pendencias[pendenciaId];
-  if (pendencia.status === 'resolvido') { mostrarMensagem(`✅ Pendência nº ${numero} já está resolvida!`, '#f39c12', msgDiv); return; }
-  
-  pendenciasRef.child(pendenciaId).update({ status: 'resolvido', dataBaixa: new Date().toISOString(), baixadoPor: users[currentUser]?.name || currentUser });
-  mostrarMensagem(`✅ Pendência nº ${numero} foi baixada com sucesso!`, '#27ae60', msgDiv);
+  if (!id) { alert('Pendência não encontrada!'); return; }
+  const p = pendencias[id];
+  if (p.status === 'resolvido') { alert('Já está resolvida!'); return; }
+  pendenciasRef.child(id).update({ status: 'resolvido', dataBaixa: new Date().toISOString(), baixadoPor: users[currentUser]?.name || currentUser });
+  msgDiv.style.display = 'flex';
+  msgDiv.textContent = `✅ Pendência ${numero} baixada com sucesso!`;
+  setTimeout(() => msgDiv.style.display = 'none', 3000);
   document.getElementById('baixar-numero').value = '';
 }
 
-function mostrarMensagem(texto, cor, elemento) {
-  if (!elemento) return;
-  elemento.textContent = texto;
-  elemento.style.backgroundColor = cor + '20';
-  elemento.style.color = cor;
-  elemento.style.display = 'flex';
-  setTimeout(() => { elemento.style.display = 'none'; }, 3000);
-}
-
-function imprimirPendenciaAtual() {
-  if (!currentPermissions.print) { alert('Sem permissão!'); return; }
-  const html = gerarHTMLImpressao({
-    clienteCodigo: document.getElementById('cliente-codigo')?.value.trim() || '',
-    cliente: document.getElementById('cliente-nome')?.value.trim() || '',
-    fantasia: document.getElementById('cliente-fantasia')?.value.trim() || '',
-    endereco: document.getElementById('endereco-input')?.value.trim() || '',
-    cidade: document.getElementById('cidade-input')?.value.trim() || '',
-    bairro: document.getElementById('bairro-input')?.value.trim() || '',
-    dataFalta: document.getElementById('data-falta-input')?.value || '',
-    numeroPendencia: document.getElementById('numero-pendencia-input')?.value.trim() || '',
-    tipoServico: document.getElementById('tipo-servico-input')?.value || 'SOMENTE ENTREGAR',
-    observacao: document.getElementById('observacao-input')?.value.trim() || '',
-    itens: currentPendenciaItens
-  }, false);
-  imprimirDocumento(html);
-}
-
-function imprimirPendenciasSelecionadas() {
-  if (!currentPermissions.print) { alert('Sem permissão!'); return; }
-  if (selectedItems.size === 0) { alert('Selecione pelo menos uma pendência!'); return; }
-  const pendenciasParaImprimir = [];
-  selectedItems.forEach(id => { if (pendencias[id]) pendenciasParaImprimir.push(pendencias[id]); });
-  if (pendenciasParaImprimir.length === 0) { alert('Nenhuma pendência encontrada!'); return; }
-  const html = gerarHTMLImpressao(pendenciasParaImprimir, true);
-  imprimirDocumento(html);
-}
-
 window.imprimirPendencia = (id) => {
-  if (!currentPermissions.print) { alert('Sem permissão!'); return; }
+  if (!currentPermissions.print) { alert('Sem permissão para imprimir!'); return; }
   const p = pendencias[id];
-  if (p) imprimirDocumento(gerarHTMLImpressao(p, false));
-  else alert('Pendência não encontrada!');
+  if (p) {
+    const html = gerarHTML(p);
+    const win = window.open('', '_blank');
+    win.document.write(html);
+    win.document.close();
+    win.print();
+  }
 };
 
-function gerarHTMLImpressao(data, isMultiple) {
-  const renderPendencia = (p) => `
-    <div class="print-document" style="margin-bottom:30px; page-break-after:always; border:1px solid #ddd; padding:20px; background:white; font-family:'Courier New', monospace;">
-      <div style="text-align:center; font-size:16pt; font-weight:bold; color:#1a472a; border-bottom:2px solid #1a472a; padding-bottom:5px;">DISLAM DISTRIBUIDORA</div>
-      <div style="text-align:center; margin:15px 0;">
-        <h1 style="font-size:20pt;">PENDÊNCIA Nº ${p.numeroPendencia || 'N/A'}</h1>
-        <div>Data da Falta: ${p.dataFalta ? new Date(p.dataFalta).toLocaleDateString('pt-BR') : ''}</div>
-      </div>
-      <div style="border:1px solid #000; padding:10px; margin-bottom:15px;">
-        <div><strong>CÓDIGO:</strong> ${p.clienteCodigo || ''}</div>
-        <div><strong>CLIENTE:</strong> ${p.cliente || ''}</div>
-        <div><strong>ENDEREÇO:</strong> ${p.endereco || ''}</div>
-        <div><strong>CIDADE:</strong> ${p.cidade || ''} - <strong>BAIRRO:</strong> ${p.bairro || ''}</div>
-      </div>
-      <div style="text-align:center; margin:15px 0;">
-        <div style="font-size:18pt; font-weight:bold; color:#c0392b; border:2px solid #c0392b; display:inline-block; padding:10px;">ATENÇÃO!!</div>
-      </div>
-      <div style="text-align:center; margin:15px 0;">
-        <div style="font-size:14pt; font-weight:bold; background:#f0f0f0; padding:10px;">${p.tipoServico || 'SOMENTE ENTREGAR'}</div>
-      </div>
-      <table style="width:100%; border-collapse:collapse;">
-        <thead><tr style="background:#f0f0f0;"><th style="border:1px solid #000; padding:8px;">CÓDIGO</th><th style="border:1px solid #000; padding:8px;">DESCRIÇÃO</th><th style="border:1px solid #000; padding:8px;">QTD</th></tr></thead>
-        <tbody>${(p.itens || []).map(i => `<tr><td style="border:1px solid #000; padding:8px;">${i.codigo}</td><td style="border:1px solid #000; padding:8px;">${i.descricao}</td><td style="border:1px solid #000; padding:8px;">${i.quantidade}</td></tr>`).join('') || '<tr><td colspan="3" style="text-align:center;">Nenhum item</td></tr>'}</tbody>
-      </table>
-      <div style="margin-top:20px; border:1px solid #000; padding:15px; min-height:80px;"><strong>OBSERVAÇÃO:</strong><br>${p.observacao || ''}</div>
-      <div style="margin-top:50px; display:flex; justify-content:space-between;">
-        <div style="text-align:center;"><div style="border-top:1px solid #000; width:200px;"></div>Assinatura do Cliente</div>
-        <div style="text-align:center;"><div style="border-top:1px solid #000; width:200px;"></div>Motorista Responsável</div>
-      </div>
-    </div>
+function gerarHTML(p) {
+  return `
+    <!DOCTYPE html>
+    <html><head><meta charset="UTF-8"><title>Pendência ${p.numeroPendencia}</title>
+    <style>body{font-family:monospace;padding:20px} h1{color:#dd6c02}</style></head>
+    <body>
+      <h1>DISLAM - Pendência Nº ${p.numeroPendencia}</h1>
+      <p><strong>Cliente:</strong> ${p.cliente || '-'}</p>
+      <p><strong>Código:</strong> ${p.clienteCodigo || '-'}</p>
+      <p><strong>Cidade:</strong> ${p.cidade || '-'}</p>
+      <p><strong>Data da Falta:</strong> ${p.dataFalta ? new Date(p.dataFalta).toLocaleDateString('pt-BR') : '-'}</p>
+      <p><strong>Motivo:</strong> ${p.motivo || '-'}</p>
+      <p><strong>Responsável:</strong> ${p.responsavel || '-'}</p>
+      <p><strong>Observação:</strong> ${p.observacao || '-'}</p>
+      <hr>
+      <p>Emitido em: ${new Date().toLocaleString()}</p>
+    </body></html>
   `;
-  
-  let html = `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>DISLAM - Pendência</title><style>body{margin:0;padding:20px;font-family:'Courier New',monospace;}@media print{.print-document{page-break-after:always;}}</style></head><body>`;
-  if (isMultiple) data.forEach(p => html += renderPendencia(p));
-  else html += renderPendencia(data);
-  html += `</body></html>`;
-  return html;
 }
 
-function imprimirDocumento(html) {
-  const win = window.open('', '_blank', 'width=800,height=600');
-  if (win) { win.document.write(html); win.document.close(); win.print(); }
-  else alert('Permita pop-ups para imprimir.');
+function exportarCSV() {
+  if (!currentPermissions.export) { alert('Sem permissão para exportar!'); return; }
+  const csv = ['Nº;Cliente;Cidade;Data;Responsável;Motivo;Situação'];
+  Object.values(pendencias).forEach(p => {
+    csv.push(`${p.numeroPendencia};${p.cliente};${p.cidade};${p.dataFalta};${p.responsavel};${p.motivo};${p.status}`);
+  });
+  const blob = new Blob([csv.join('\n')], { type: 'text/csv' });
+  const link = document.createElement('a');
+  link.href = URL.createObjectURL(blob);
+  link.download = `pendencias_${new Date().toISOString().split('T')[0]}.csv`;
+  link.click();
 }
 
-// ========== EVENTOS E INICIALIZAÇÃO ==========
+function imprimirSelecionadas() {
+  if (!currentPermissions.print) { alert('Sem permissão para imprimir!'); return; }
+  if (selectedItems.size === 0) { alert('Selecione pelo menos uma pendência!'); return; }
+  const html = [];
+  selectedItems.forEach(id => {
+    if (pendencias[id]) html.push(gerarHTML(pendencias[id]));
+  });
+  const win = window.open('', '_blank');
+  win.document.write(html.join('<div style="page-break-after:always"></div>'));
+  win.document.close();
+  win.print();
+}
+
+// EVENTOS
 document.getElementById('login-form')?.addEventListener('submit', async (e) => {
   e.preventDefault();
   const success = await login(document.getElementById('login-username').value, document.getElementById('login-password').value);
@@ -2084,15 +1608,16 @@ document.getElementById('login-form')?.addEventListener('submit', async (e) => {
 
 document.getElementById('logout-button')?.addEventListener('click', logout);
 document.getElementById('cancel-button')?.addEventListener('click', () => document.getElementById('modal').style.display = 'none');
+
 document.getElementById('add-button')?.addEventListener('click', () => {
-  if (!currentPermissions.create) { alert('Sem permissão!'); return; }
+  if (!currentPermissions.create) { alert('Sem permissão para criar pendência!'); return; }
   editingId = null;
   document.getElementById('modal-title').textContent = 'Nova Pendência';
   document.getElementById('pendencia-form').reset();
   document.getElementById('edit-fields').style.display = 'none';
   currentPendenciaItens = [];
-  renderPendenciaItensList();
-  document.getElementById('numero-pendencia-input').value = getNextNumeroPendencia();
+  renderItensList();
+  document.getElementById('numero-pendencia-input').value = getNextNumero();
   document.getElementById('modal').style.display = 'flex';
   setTimeout(() => document.getElementById('cliente-codigo').focus(), 100);
 });
@@ -2100,10 +1625,6 @@ document.getElementById('add-button')?.addEventListener('click', () => {
 document.getElementById('pendencia-form')?.addEventListener('submit', (e) => {
   e.preventDefault();
   const numero = document.getElementById('numero-pendencia-input').value.trim();
-  if (!editingId && Object.values(pendencias).some(p => p.numeroPendencia === numero)) {
-    alert(`O número ${numero} já está em uso!`);
-    return;
-  }
   const pendencia = {
     clienteCodigo: document.getElementById('cliente-codigo').value.trim(),
     cliente: document.getElementById('cliente-nome').value.trim(),
@@ -2129,48 +1650,47 @@ document.getElementById('pendencia-form')?.addEventListener('submit', (e) => {
   document.getElementById('modal').style.display = 'none';
 });
 
-document.getElementById('export-button')?.addEventListener('click', () => {
-  if (!currentPermissions.export) { alert('Sem permissão!'); return; }
-  const csv = ['Nº;Código;Cliente;Cidade;Data;Responsável;Motivo;Situação;Baixada por;Registrado por'];
-  Object.values(pendencias).forEach(p => {
-    csv.push(`${p.numeroPendencia};${p.clienteCodigo};${p.cliente};${p.cidade};${p.dataFalta};${p.responsavel};${p.motivo};${p.status};${p.baixadoPor || ''};${p.registradoPor || ''}`);
-  });
-  const blob = new Blob([csv.join('\n')], { type: 'text/csv' });
-  const link = document.createElement('a');
-  link.href = URL.createObjectURL(blob);
-  link.download = `pendencias_${new Date().toISOString().split('T')[0]}.csv`;
-  link.click();
-});
+document.getElementById('export-button')?.addEventListener('click', exportarCSV);
+document.getElementById('print-selected-btn')?.addEventListener('click', imprimirSelecionadas);
+document.getElementById('btn-baixar-pendencia')?.addEventListener('click', baixarPendencia);
 
 document.getElementById('import-clientes-btn')?.addEventListener('click', () => {
   if (!currentPermissions.importClientes) { alert('Sem permissão!'); return; }
   const file = document.getElementById('client-file').files[0];
-  if (!file) { alert('Selecione um arquivo!'); return; }
-  importarClientes(file);
+  if (file) importarClientes(file);
+  else alert('Selecione um arquivo!');
 });
 
 document.getElementById('import-itens-btn')?.addEventListener('click', () => {
   if (!currentPermissions.importItens) { alert('Sem permissão!'); return; }
   const file = document.getElementById('item-file').files[0];
-  if (!file) { alert('Selecione um arquivo!'); return; }
-  importarItens(file);
+  if (file) importarItens(file);
+  else alert('Selecione um arquivo!');
 });
 
-document.getElementById('search-client')?.addEventListener('click', () => {
-  const codigo = document.getElementById('client-code').value.trim();
-  const cliente = clientesDB[codigo];
-  if (cliente) {
-    document.getElementById('client-details').innerHTML = `
-      <div><span class="info-label">Código:</span> ${codigo}</div>
-      <div><span class="info-label">Nome:</span> ${cliente.nome || '-'}</div>
-      <div><span class="info-label">Fantasia:</span> ${cliente.fantasia || '-'}</div>
-      <div><span class="info-label">Endereço:</span> ${cliente.endereco || '-'}</div>
-      <div><span class="info-label">Cidade:</span> ${cliente.cidade || '-'}</div>
-    `;
-    document.getElementById('client-info').style.display = 'block';
-  } else { alert('Cliente não encontrado!'); }
+document.getElementById('delete-all-clientes-btn')?.addEventListener('click', excluirTodosClientes);
+document.getElementById('delete-all-itens-btn')?.addEventListener('click', excluirTodosItens);
+
+// Enter no campo item
+document.getElementById('item-codigo-input')?.addEventListener('keypress', (e) => {
+  if (e.key === 'Enter') { e.preventDefault(); addItemToPendencia(); }
+});
+document.getElementById('item-quantidade-input')?.addEventListener('keypress', (e) => {
+  if (e.key === 'Enter') { e.preventDefault(); addItemToPendencia(); }
 });
 
+document.getElementById('add-item-btn')?.addEventListener('click', addItemToPendencia);
+document.getElementById('cliente-codigo')?.addEventListener('blur', () => preencherDadosCliente(document.getElementById('cliente-codigo').value));
+
+// Ordenação
+document.querySelectorAll('.sort-btn').forEach(btn => btn.addEventListener('click', () => {
+  const field = btn.dataset.sort;
+  if (currentSort.field === field) currentSort.order = currentSort.order === 'asc' ? 'desc' : 'asc';
+  else { currentSort.field = field; currentSort.order = 'asc'; }
+  updateTable();
+}));
+
+// Ações em massa
 document.getElementById('select-all-btn')?.addEventListener('click', () => {
   document.querySelectorAll('.row-checkbox').forEach(cb => { cb.checked = true; selectedItems.add(cb.dataset.id); });
   updateSelectedCount();
@@ -2180,6 +1700,7 @@ document.getElementById('deselect-all-btn')?.addEventListener('click', () => {
   updateSelectedCount();
 });
 document.getElementById('delete-selected-btn')?.addEventListener('click', () => {
+  if (!currentPermissions.batchDelete) { alert('Sem permissão!'); return; }
   if (selectedItems.size === 0) { alert('Nenhuma selecionada!'); return; }
   if (confirm(`Excluir ${selectedItems.size} pendência(s)?`)) {
     selectedItems.forEach(id => pendenciasRef.child(id).remove());
@@ -2187,46 +1708,86 @@ document.getElementById('delete-selected-btn')?.addEventListener('click', () => 
     updateSelectedCount();
   }
 });
-document.getElementById('delete-all-btn')?.addEventListener('click', () => {
+document.getElementById('delete-all-btn')?.addEventListener('click', async () => {
+  if (!currentPermissions.deleteAll) { alert('Sem permissão!'); return; }
   const total = Object.keys(pendencias).length;
-  if (total === 0) { alert('Nenhuma pendência!'); return; }
+  if (total === 0) return;
   if (confirm(`⚠️ EXCLUIR TODAS as ${total} pendências?`) && prompt('Digite "EXCLUIR" para confirmar:') === 'EXCLUIR') {
-    pendenciasRef.set(null);
+    await pendenciasRef.set(null);
     selectedItems.clear();
-    updateSelectedCount();
+    alert('✅ Todas as pendências foram excluídas!');
   }
 });
 
-document.querySelectorAll('.sort-btn').forEach(btn => btn.addEventListener('click', () => {
-  const field = btn.dataset.sort;
-  if (currentSort.field === field) currentSort.order = currentSort.order === 'asc' ? 'desc' : 'asc';
-  else { currentSort.field = field; currentSort.order = 'asc'; }
-  updateTable();
-}));
-
+// Filtros
 document.getElementById('status-filter')?.addEventListener('change', updateTable);
 document.getElementById('motivo-filter')?.addEventListener('change', updateTable);
 document.getElementById('responsavel-filter')?.addEventListener('change', updateTable);
 document.getElementById('search-input')?.addEventListener('input', updateTable);
-document.getElementById('show-resolved')?.addEventListener('change', updateTable);
-document.getElementById('show-unresolved')?.addEventListener('change', updateTable);
-document.getElementById('print-button')?.addEventListener('click', imprimirPendenciaAtual);
-document.getElementById('print-selected-btn')?.addEventListener('click', imprimirPendenciasSelecionadas);
-document.getElementById('btn-baixar-pendencia')?.addEventListener('click', baixarPendencia);
-document.getElementById('add-item-btn')?.addEventListener('click', addItemToPendencia);
-document.getElementById('cliente-codigo')?.addEventListener('blur', () => preencherDadosCliente(document.getElementById('cliente-codigo').value.trim()));
-document.getElementById('item-codigo-input')?.addEventListener('blur', () => preencherDadosItem(document.getElementById('item-codigo-input').value.trim()));
 
-document.querySelectorAll('.tab-btn').forEach(btn => btn.addEventListener('click', () => {
-  const tabId = btn.dataset.tab;
-  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-  btn.classList.add('active');
-  document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-  document.getElementById(tabId).classList.add('active');
-  if (tabId === 'clientes-tab') renderClientesList();
-  if (tabId === 'itens-tab') renderItemsList();
-  if (tabId === 'sessoes-tab' && currentPermissions.manageUsers) carregarSessoesAtivas();
-}));
+// Adicionar novos itens com duplo clique
+document.getElementById('motivo-input')?.addEventListener('dblclick', (e) => {
+  e.preventDefault();
+  adicionarNovoMotivo();
+});
+document.getElementById('responsavel-input')?.addEventListener('dblclick', (e) => {
+  e.preventDefault();
+  adicionarNovoResponsavel();
+});
+
+// Seções minimizáveis
+function initCollapsible(headerId, contentId) {
+  const header = document.getElementById(headerId);
+  const content = document.getElementById(contentId);
+  if (header && content) {
+    header.addEventListener('click', () => {
+      header.classList.toggle('collapsed');
+      content.classList.toggle('collapsed');
+    });
+  }
+}
+initCollapsible('filter-header', 'filter-content');
+initCollapsible('batch-header', 'batch-content');
+
+// Minimizável do ORDENAR
+const sortHeader = document.getElementById('sort-header');
+const sortOptions = document.getElementById('sort-options');
+if (sortHeader && sortOptions) {
+  sortHeader.addEventListener('click', (e) => {
+    e.stopPropagation();
+    sortHeader.classList.toggle('collapsed');
+    sortOptions.classList.toggle('collapsed');
+  });
+}
+
+// Mini collapsible para cada filter section
+document.querySelectorAll('.filter-section h3').forEach(header => {
+  if (header.id !== 'sort-header') {
+    const parent = header.parentElement;
+    const select = parent.querySelector('select, .sort-buttons, input');
+    if (select) {
+      header.style.cursor = 'pointer';
+      header.addEventListener('click', (e) => {
+        e.stopPropagation();
+        header.classList.toggle('collapsed');
+        if (select) select.classList.toggle('collapsed');
+      });
+    }
+  }
+});
+
+// Tabs admin
+document.querySelectorAll('.tab-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const tabId = btn.dataset.tab;
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+    document.getElementById(tabId).classList.add('active');
+    if (tabId === 'usuarios-tab') loadUsersList();
+    if (tabId === 'sessoes-tab') carregarSessoesAtivas();
+  });
+});
 
 document.getElementById('create-user-form')?.addEventListener('submit', (e) => {
   e.preventDefault();
@@ -2234,57 +1795,72 @@ document.getElementById('create-user-form')?.addEventListener('submit', (e) => {
   const newPass = document.getElementById('new-password').value;
   const newRole = document.getElementById('new-role').value;
   if (users[newUser]) { alert('Usuário já existe!'); return; }
-  users[newUser] = { password: newPass, name: newUser, role: newRole, permissions: { create: true, edit: false, delete: false, changeStatus: true, export: false, print: false, importClientes: false, importItens: false, batchDelete: false, deleteAll: false, manageUsers: false, viewClientes: true, viewPendencias: true, searchCliente: true, showSearchCliente: true, baixarPendencia: true } };
-  saveUsersToFirebase();
+  users[newUser] = { 
+    password: newPass, 
+    name: newUser, 
+    role: newRole, 
+    permissions: { 
+      create: true, edit: false, delete: false, changeStatus: true, export: true, 
+      importClientes: false, importItens: false, batchDelete: false, deleteAll: false, 
+      manageUsers: false, print: true, baixarPendencia: true
+    } 
+  };
+  usersRef.set(users);
   loadUsersList();
   alert('Usuário criado!');
 });
 
-// Tela de login - alterar senha
+// Alterar senha
 const showChangePassword = document.getElementById('show-change-password');
 const changePasswordForm = document.getElementById('change-password-form');
 const cancelChangePassword = document.getElementById('cancel-change-password');
-if (showChangePassword) showChangePassword.addEventListener('click', () => {
-  document.getElementById('login-form').style.display = 'none';
-  changePasswordForm.style.display = 'block';
-});
-if (cancelChangePassword) cancelChangePassword.addEventListener('click', () => {
-  changePasswordForm.style.display = 'none';
-  document.getElementById('login-form').style.display = 'block';
-});
-if (changePasswordForm) changePasswordForm.addEventListener('submit', (e) => {
-  e.preventDefault();
-  const username = document.getElementById('change-username').value.trim();
-  const currentPass = document.getElementById('current-password').value;
-  const newPass = document.getElementById('new-password').value;
-  const confirmPass = document.getElementById('confirm-new-password').value;
-  const errorDiv = document.getElementById('change-password-error');
-  const successDiv = document.getElementById('change-password-success');
-  errorDiv.style.display = 'none';
-  successDiv.style.display = 'none';
-  if (newPass !== confirmPass) { errorDiv.textContent = 'Senhas não coincidem!'; errorDiv.style.display = 'block'; return; }
-  if (!users[username]) { errorDiv.textContent = 'Usuário não encontrado!'; errorDiv.style.display = 'block'; return; }
-  if (users[username].password !== currentPass) { errorDiv.textContent = 'Senha atual incorreta!'; errorDiv.style.display = 'block'; return; }
-  if (newPass.length < 4) { errorDiv.textContent = 'Senha deve ter pelo menos 4 caracteres!'; errorDiv.style.display = 'block'; return; }
-  users[username].password = newPass;
-  saveUsersToFirebase();
-  successDiv.textContent = 'Senha alterada com sucesso!';
-  successDiv.style.display = 'block';
-  setTimeout(() => {
+if (showChangePassword) {
+  showChangePassword.addEventListener('click', () => {
+    document.getElementById('login-form').style.display = 'none';
+    changePasswordForm.style.display = 'block';
+  });
+}
+if (cancelChangePassword) {
+  cancelChangePassword.addEventListener('click', () => {
     changePasswordForm.style.display = 'none';
     document.getElementById('login-form').style.display = 'block';
-    successDiv.style.display = 'none';
+  });
+}
+if (changePasswordForm) {
+  changePasswordForm.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const username = document.getElementById('change-username').value.trim();
+    const currentPass = document.getElementById('current-password').value;
+    const newPass = document.getElementById('new-password').value;
+    const confirmPass = document.getElementById('confirm-new-password').value;
+    const errorDiv = document.getElementById('change-password-error');
+    if (newPass !== confirmPass) { errorDiv.textContent = 'Senhas não coincidem!'; errorDiv.style.display = 'block'; return; }
+    if (!users[username]) { errorDiv.textContent = 'Usuário não encontrado!'; errorDiv.style.display = 'block'; return; }
+    if (users[username].password !== currentPass) { errorDiv.textContent = 'Senha atual incorreta!'; errorDiv.style.display = 'block'; return; }
+    users[username].password = newPass;
+    usersRef.set(users);
+    alert('Senha alterada!');
+    changePasswordForm.style.display = 'none';
+    document.getElementById('login-form').style.display = 'block';
     if (currentUser === username) logout();
-  }, 2000);
-});
+  });
+}
 
-// Inicialização
-document.addEventListener("DOMContentLoaded", () => console.log('✅ Sistema DISLAM inicializado!'));
-loadUltimoNumero();
-loadUsersFromFirebase();
+// Carregamento
+function loadClientesFromFirebase() { clientesRef.on('value', (s) => { clientesDB = s.val() || {}; updateClientList(); renderClientesList(); }); }
+function loadItensFromFirebase() { itensRef.on('value', (s) => { itensDB = s.val() || {}; updateItemLists(); renderItemsList(); }); }
+function loadPendenciasFromFirebase() { pendenciasRef.on('value', (s) => { pendencias = s.val() || {}; calcularProximoNumero(); updateTable(); }); }
+function loadUsersFromFirebase() { usersRef.on('value', (s) => { if (s.val()) users = { ...usuariosIniciais, ...s.val() }; loadUsersList(); }); }
+function loadListas() {
+  configRef.child('motivosList').once('value', (s) => { if (s.val()) motivosList = s.val(); atualizarSelects(); });
+  configRef.child('responsaveisList').once('value', (s) => { if (s.val()) responsaveisList = s.val(); atualizarSelects(); });
+}
+
+loadListas();
 loadClientesFromFirebase();
 loadItensFromFirebase();
 loadPendenciasFromFirebase();
+loadUsersFromFirebase();
 checkAutoLogin();
 </script>
 </body>
