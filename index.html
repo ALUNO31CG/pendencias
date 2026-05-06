@@ -929,7 +929,7 @@ let nextPendenciaNumero = 1;
 const INACTIVITY_TIMEOUT = 20 * 60 * 1000;
 
 // Listas dinâmicas
-let motivosList = ['Sem Motivo', 'Vendedor', 'Devolucao', 'Cliente', 'Em Rota', 'Interno', 'Motorista'];
+let motivosList = ['Sem Motivo', 'Vendedor', 'Devolução', 'Cliente', 'Em Rota', 'Interno', 'Motorista', 'Avaria de Rota', 'Avaria de Fábrica', 'Televendas'];
 let responsaveisList = ['NA BASE', 'JONJON', 'CELSO', 'JAMILSON', 'RAONEY', 'EDUARDO', 'RENAN', 'EULLER', 'THIAGO', 'BRUNO', 'ITALO', 'JAIRO'];
 
 // Lista de permissões disponíveis
@@ -1597,7 +1597,7 @@ function baixarPendencia() {
   document.getElementById('baixar-numero').value = '';
 }
 
-// FUNÇÃO DE IMPRESSÃO ATUALIZADA - com Bairro, sem título "DADOS DO CLIENTE", sem rodapé com data
+// FUNÇÃO DE IMPRESSÃO ATUALIZADA - com assinaturas, bordas nos itens e ajuste de página
 window.imprimirPendencia = (id) => {
   if (!currentPermissions.print) { alert('Sem permissão para imprimir!'); return; }
   const p = pendencias[id];
@@ -1611,20 +1611,20 @@ window.imprimirPendencia = (id) => {
 };
 
 function gerarHTML(p) {
-  // Formatar itens para impressão
+  // Formatar itens para impressão com bordas e espaçamento
   let itensHtml = '';
   if (p.itens && p.itens.length > 0) {
-    p.itens.forEach(item => {
+    p.itens.forEach((item, index) => {
       itensHtml += `
-        <tr>
-          <td style="border: 1px solid #ddd; padding: 8px;">${item.codigo || '---'}</td>
-          <td style="border: 1px solid #ddd; padding: 8px;">${item.descricao || '---'}</td>
-          <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">${item.quantidade || 0}</td>
+        <tr style="border-bottom: 1px solid #ddd;">
+          <td style="border: 1px solid #ddd; padding: 10px;">${item.codigo || '---'}</td>
+          <td style="border: 1px solid #ddd; padding: 10px;">${item.descricao || '---'}</td>
+          <td style="border: 1px solid #ddd; padding: 10px; text-align: center;">${item.quantidade || 0}</td>
         </tr>
       `;
     });
   } else {
-    itensHtml = '<tr><td colspan="3" style="text-align: center;">Nenhum item cadastrado</td></tr>';
+    itensHtml = '<tr><td colspan="3" style="border: 1px solid #ddd; padding: 20px; text-align: center;">Nenhum item cadastrado</td></tr>';
   }
   
   // Formatar o tipo de serviço para exibição
@@ -1635,6 +1635,8 @@ function gerarHTML(p) {
     atencaoTexto = '⚠️ ATENÇÃO: SOMENTE RECOLHER ⚠️';
   } else if (p.tipoServico === 'RECOLHER E ENTREGAR') {
     atencaoTexto = '⚠️ ATENÇÃO: RECOLHER E ENTREGAR ⚠️';
+  } else {
+    atencaoTexto = '⚠️ ATENÇÃO: VERIFICAR TIPO DE SERVIÇO ⚠️';
   }
   
   // Endereço completo com bairro
@@ -1647,7 +1649,11 @@ function gerarHTML(p) {
       <meta charset="UTF-8">
       <title>DISLAM - Pendência ${p.numeroPendencia}</title>
       <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
+        * {
+          margin: 0;
+          padding: 0;
+          box-sizing: border-box;
+        }
         body {
           font-family: 'Courier New', monospace;
           padding: 20px;
@@ -1658,6 +1664,7 @@ function gerarHTML(p) {
           max-width: 800px;
           margin: 0 auto;
           background: white;
+          page-break-inside: avoid;
         }
         .header {
           text-align: center;
@@ -1719,7 +1726,7 @@ function gerarHTML(p) {
           border: 1px solid #ddd;
         }
         .itens-table td {
-          padding: 8px;
+          padding: 10px;
           font-size: 11px;
           border: 1px solid #ddd;
         }
@@ -1730,9 +1737,48 @@ function gerarHTML(p) {
           border-left: 3px solid #dd6c02;
           font-size: 11px;
         }
+        .assinaturas {
+          margin-top: 40px;
+          margin-bottom: 20px;
+        }
+        .assinatura-linha {
+          display: flex;
+          justify-content: space-between;
+          margin-top: 30px;
+          gap: 40px;
+        }
+        .assinatura-item {
+          flex: 1;
+          text-align: center;
+        }
+        .linha-assinatura {
+          border-bottom: 1px solid #000;
+          margin-top: 30px;
+          margin-bottom: 8px;
+          width: 100%;
+        }
+        .texto-assinatura {
+          font-size: 11px;
+          color: #555;
+        }
         @media print {
-          body { padding: 0; margin: 0; }
-          .container { max-width: 100%; }
+          body {
+            padding: 0;
+            margin: 0;
+          }
+          .container {
+            max-width: 100%;
+            padding: 15px;
+          }
+          .header h1 {
+            font-size: 22px;
+          }
+          .header h2 {
+            font-size: 16px;
+          }
+          .assinatura-linha {
+            margin-top: 50px;
+          }
         }
       </style>
     </head>
@@ -1777,10 +1823,10 @@ function gerarHTML(p) {
         
         <!-- ATENÇÃO CENTRALIZADA SOBRE O TIPO DE SERVIÇO -->
         <div class="atencao">
-          ${atencaoTexto || '⚠️ ATENÇÃO: VERIFICAR TIPO DE SERVIÇO ⚠️'}
+          ${atencaoTexto}
         </div>
         
-        <!-- TABELA DE ITENS -->
+        <!-- TABELA DE ITENS COM BORDAS -->
         <table class="itens-table">
           <thead>
             <tr>
@@ -1794,10 +1840,26 @@ function gerarHTML(p) {
           </tbody>
         </table>
         
-        <!-- OBSERVAÇÃO POR ÚLTIMO -->
+        <!-- OBSERVAÇÃO -->
         <div class="observacao">
           <strong>📝 OBSERVAÇÃO:</strong><br>
           ${p.observacao || 'Nenhuma observação registrada.'}
+        </div>
+        
+        <!-- LINHAS DE ASSINATURA -->
+        <div class="assinaturas">
+          <div class="assinatura-linha">
+            <div class="assinatura-item">
+              <div class="linha-assinatura"></div>
+              <div class="texto-assinatura">___________________________________</div>
+              <div class="texto-assinatura"><strong>Assinatura do Cliente</strong></div>
+            </div>
+            <div class="assinatura-item">
+              <div class="linha-assinatura"></div>
+              <div class="texto-assinatura">___________________________________</div>
+              <div class="texto-assinatura"><strong>Assinatura do Responsável</strong></div>
+            </div>
+          </div>
         </div>
       </div>
     </body>
