@@ -930,7 +930,7 @@ const INACTIVITY_TIMEOUT = 20 * 60 * 1000;
 
 // Listas dinâmicas
 let motivosList = ['Sem Motivo', 'Vendedor', 'Devolução', 'Cliente', 'Em Rota', 'Interno', 'Motorista', 'Avaria de Rota', 'Avaria de Fábrica', 'Televendas'];
-let responsaveisList = ['NA BASE', 'JONJON', 'CELSO', 'JAMILSON', 'RAONEY', 'EDUARDO', 'RENAN', 'EULLER', 'THIAGO', 'BRUNO', 'ITALO', 'JAIRO'];
+let responsaveisList = ['NA BASE', 'JONJON', 'CELSO', 'JAMILSON', 'RAONEY', 'EDUARDO', 'RENAN', 'EULLER', 'THIAGO', 'BRUNO', 'ITALO', 'JAIRO', 'SR. CARLOS', 'KEINHO'];
 
 // Lista de permissões disponíveis
 const permissoesLista = [
@@ -1792,13 +1792,18 @@ function gerarHTML(p) {
         <!-- INFORMAÇÕES DO CLIENTE (SEM TÍTULO) -->
         <div class="cliente-box">
           <div class="info-row">
+            <div class="info-label">Código:</div>
+            <div class="info-value">${p.clienteCodigo || '-'}</div>
+          </div>
+          <div class="info-row">
             <div class="info-label">Cliente:</div>
             <div class="info-value"><strong>${p.cliente || '-'}</strong></div>
           </div>
           <div class="info-row">
-            <div class="info-label">Código:</div>
-            <div class="info-value">${p.clienteCodigo || '-'}</div>
-          </div>
+    <div class="info-label">Nome Fantasia:</div>
+    <div class="info-value">${p.fantasia || '-'}</div>
+  </div>
+          
           <div class="info-row">
             <div class="info-label">Endereço:</div>
             <div class="info-value">${enderecoCompleto}</div>
