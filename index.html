@@ -4,6 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>DISLAM - Controle de Pendências</title>
+  <link rel="icon" type="image/png" href="dislam simbolo.png">
 
   <style>
     * {
@@ -1780,9 +1781,29 @@ function gerarHTML(p) {
             margin-top: 50px;
           }
         }
+        /* MARCA D'ÁGUA */
+.watermark {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) rotate(-25deg);
+  opacity: 0.12;
+  pointer-events: none;
+  z-index: 999;
+}
+
+.watermark img {
+  width: 280px;
+  height: auto;
+  display: block;
+}
       </style>
     </head>
     <body>
+      <!-- MARCA D'ÁGUA -->
+  <div class="watermark">
+    <img src="https://ufsb.edu.br/nit/images/phocagallery/galeria2/thumbs/phoca_thumb_l_image03_grd.png" alt="DISLAM">
+  </div>
       <div class="container">
         <div class="header">
           <h1>DISLAM Distribuidora</h1>
